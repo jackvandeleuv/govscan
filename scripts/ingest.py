@@ -7,10 +7,10 @@ import base64
 import os 
 import re
 from dotenv import load_dotenv
-import sqlite3
 import numpy as np
 import json
 import httpx
+import pandas as pd
 
 # Load environmental variables
 load_dotenv()
@@ -127,11 +127,11 @@ class SimpleMultimodalReader:
         self, 
         file: Path, 
         extra_info: Optional[Dict] = None
-    )-> List:
+    )-> List[Document]:
         # Convert PDF to Images and Save
         pdf_to_images(file, IMAGE_FOLDER_PATH)
 
-        # # Extract text with Haiku
+        # Extract text with Haiku
         image_files = sorted([f for f in os.listdir(IMAGE_FOLDER_PATH) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))], key=natural_sort_key)
         ocr_texts = []
 
@@ -163,6 +163,8 @@ class SimpleMultimodalReader:
             start = 0
             end = start + CHUNK_LEN
 
+
+        print('chunks_data:', chunks_data)
         docs = []
         for row in chunks_data:
             metadata = {"page_label": row['page_number'], "file_name": str(file)}
@@ -172,54 +174,6 @@ class SimpleMultimodalReader:
             docs.append(Document(text=row['chunk'], metadata=metadata))
 
         return docs
-
-
-# def create_db():
-#     conn = sqlite3.connect(SQLITE_DB_PATH)
-#     cursor = conn.cursor()
-#     cursor.execute('''
-#         CREATE TABLE IF NOT EXISTS documents (
-#             id INTEGER PRIMARY KEY,
-#             text TEXT,
-#             page_label INTEGER,
-#             FAISS_ID INTEGER
-#         )
-#     ''')
-#     conn.commit()
-
-#     cursor.execute('''
-#         CREATE INDEX IF NOT EXISTS idx_faiss_id ON documents (FAISS_ID)
-#     ''')
-#     conn.commit()
-
-#     conn.close()
-
-
-# def create_faiss_index():
-#     index = faiss.IndexIDMap(faiss.IndexFlatL2(FAISS_INDEX_DIM))
-#     faiss.write_index(index, FAISS_INDEX_PATH)
-
-
-# def insert_data(
-#     conn, 
-#     index, 
-#     faiss_id: int, 
-#     text: str, 
-#     page_label: int, 
-#     vector: List[float]
-# ):
-#     vector = np.array(vector, dtype=np.float32).reshape(1, -1)
-
-#     index.add_with_ids(vector, np.array([faiss_id], dtype=np.int64))
-#     faiss.write_index(index, FAISS_INDEX_PATH)
-
-#     cursor = conn.cursor()
-#     cursor.execute('''
-#         INSERT INTO documents (text, page_label, FAISS_ID)
-#         VALUES (?, ?, ?)
-#     ''', (text, page_label, faiss_id))
-#     conn.commit()
-
 
 
 async def embed_chunk(query_str: str) -> List[float]:
@@ -240,17 +194,35 @@ async def embed_chunk(query_str: str) -> List[float]:
 
 
 def ingest(path: str):
+    name_minus_ext, _ = path.rsplit('.', 1)
+    _, name_minus_dir = name_minus_ext.split('/', 1)
+    file_name = f'ocr-text/OCR_{name_minus_dir}.csv'
+    COLUMNS = ['file_path', 'text', 'page', 'chunk_num']
 
     reader = SimpleMultimodalReader()
     chunks = reader.load_data(path, extra_info=None)
-    print(chunks[0])
-    return
+    print('chunks', chunks)
+    data = []
+    for i, chunk in enumerate(chunks):
+        data.append({
+            'file_path': path, 
+            'text': chunk.text, 
+            'page': chunk.metadata['page_label'], 
+            'chunk_num': i
+        })
+    df = pd.DataFrame(data, columns=COLUMNS)
+    print(data)
+    print(df)
+    print(f'[INFO] Writing {file_name} to disk.')
+    df.to_csv(file_name, index=False)
+    print('[INFO] Completed.')
 
 
 for file_path in os.listdir('vlrs'):
-    print(file_path)
     file_path = 'vlrs/' + file_path 
     if os.path.isfile(file_path):
         print(f'[INFO] Ingesting {file_path}.')
         ingest(file_path)
-    break
+
+# Clean up temp images dir.
+os.rmdir('../temp-images')
