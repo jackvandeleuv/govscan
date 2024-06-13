@@ -20,7 +20,7 @@ client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
 # Constants
 IMAGE_FOLDER_PATH = '../temp-images'
-STRIDE = 20  # Stride is overlap between passages.
+STRIDE = 20  # Decreasing stride increases overlap between chunks.
 CHUNK_LEN = 80
 HAIKU_MODEL = 'claude-3-haiku-20240307'
 MAX_TOKENS = 4096
@@ -163,8 +163,6 @@ class SimpleMultimodalReader:
             start = 0
             end = start + CHUNK_LEN
 
-
-        print('chunks_data:', chunks_data)
         docs = []
         for row in chunks_data:
             metadata = {"page_label": row['page_number'], "file_name": str(file)}
@@ -201,7 +199,7 @@ def ingest(path: str):
 
     reader = SimpleMultimodalReader()
     chunks = reader.load_data(path, extra_info=None)
-    print('chunks', chunks)
+
     data = []
     for i, chunk in enumerate(chunks):
         data.append({
@@ -211,8 +209,6 @@ def ingest(path: str):
             'chunk_num': i
         })
     df = pd.DataFrame(data, columns=COLUMNS)
-    print(data)
-    print(df)
     print(f'[INFO] Writing {file_name} to disk.')
     df.to_csv(file_name, index=False)
     print('[INFO] Completed.')

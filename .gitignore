@@ -48,3 +48,5 @@ yarn-error.log*
 .venv
 temp-images
 scripts/vlrs
+scripts/ocr-text
+scripts/embeddings
