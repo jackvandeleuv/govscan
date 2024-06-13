@@ -44,12 +44,7 @@ yarn-error.log*
 # Sentry Auth Token
 .sentryclirc
 
-
-backend/documents/ccdf/docstore.json
-backend/documents/ccdf/graph_store.json
-backend/documents/ccdf/index_store.json
-backend/documents/docstore.json
-backend/documents/graph_store.json
-backend/documents/index_store.json
-backend/temp-images
-backend/documents/image__vector_store.json
+# Python virtual env
+.venv
+temp-images
+scripts/vlrs
