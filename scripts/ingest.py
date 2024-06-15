@@ -20,10 +20,14 @@ client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
 # Constants
 IMAGE_FOLDER_PATH = '../temp-images'
-STRIDE = 20  # Decreasing stride increases overlap between chunks.
-CHUNK_LEN = 80
+STRIDE = 50  # Decreasing stride increases overlap between chunks.
+CHUNK_LEN = 100
 HAIKU_MODEL = 'claude-3-haiku-20240307'
 MAX_TOKENS = 4096
+COLUMNS = ['file_path', 'text', 'page', 'chunk_num']
+VLR_DIR = 'vlrs'
+CHUNK_DIR = 'ocr-chunks'
+FULL_TEXT_DIR = 'ocr-text'
 
 
 def ocr_image(image_path, encode_function, model, max_tokens):
@@ -144,8 +148,14 @@ class SimpleMultimodalReader:
             ocr_texts.append(ocr_text)
 
         cleaned_texts = [extract_text_from_ocr_result(text) for text in ocr_texts]
-        page_data = [{"text": str(el), "page_number": idx + 1} for idx, el in enumerate(cleaned_texts)]
+        page_data = [{"text": str(el), "page_number": idx + 1, "file_name": file} for idx, el in enumerate(cleaned_texts)]
         
+        # Save full text to disk.
+        name_minus_ext, _ = file.rsplit('.', 1)
+        _, name_minus_dir = name_minus_ext.split('/', 1)
+        output_path = FULL_TEXT_DIR + '/FULL_TEXT_' + name_minus_dir + '.csv'
+        pd.DataFrame(page_data).to_csv(output_path, index=False)
+
         chunks_data = []
 
         start = 0
@@ -174,28 +184,10 @@ class SimpleMultimodalReader:
         return docs
 
 
-async def embed_chunk(query_str: str) -> List[float]:
-    headers = {
-        "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}",
-        "Content-Type": "application/json"
-    }
-    data = json.dumps({
-        "input": query_str,
-        "model": "text-embedding-3-large",
-        "encoding_format": "float"
-    })
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post("https://api.openai.com/v1/embeddings", headers=headers, data=data)
-        response_json = response.json()
-        return response_json['data'][0]['embedding']
-
-
 def ingest(path: str):
     name_minus_ext, _ = path.rsplit('.', 1)
     _, name_minus_dir = name_minus_ext.split('/', 1)
-    file_name = f'ocr-text/OCR_{name_minus_dir}.csv'
-    COLUMNS = ['file_path', 'text', 'page', 'chunk_num']
+    file_name = CHUNK_DIR + '/' + f'OCR_{name_minus_dir}.csv'
 
     reader = SimpleMultimodalReader()
     chunks = reader.load_data(path, extra_info=None)
@@ -214,11 +206,8 @@ def ingest(path: str):
     print('[INFO] Completed.')
 
 
-for file_path in os.listdir('vlrs'):
-    file_path = 'vlrs/' + file_path 
+for file_path in os.listdir(VLR_DIR)[-1 :]:  # TODO: REMOVE SLICER
+    file_path = VLR_DIR + '/' + file_path 
     if os.path.isfile(file_path):
         print(f'[INFO] Ingesting {file_path}.')
         ingest(file_path)
-
-# Clean up temp images dir.
-os.rmdir('../temp-images')

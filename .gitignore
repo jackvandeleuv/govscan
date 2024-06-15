@@ -50,3 +50,4 @@ temp-images
 scripts/vlrs
 scripts/ocr-text
 scripts/embeddings
+scripts/ocr-chunks

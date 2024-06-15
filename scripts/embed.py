@@ -5,8 +5,8 @@ import os
 import pandas as pd
 import asyncio
 
-EMBEDDING_MODEL = "text-embedding-3-large"
-OCR_DIR = 'ocr-text'
+EMBEDDING_MODEL = "text-embedding-3-small"
+OCR_DIR = 'ocr-chunks'
 EMBEDDING_DIR = 'embeddings'
 
 async def embed(string: str) -> List[float]:
