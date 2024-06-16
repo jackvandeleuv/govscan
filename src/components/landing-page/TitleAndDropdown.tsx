@@ -73,12 +73,12 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
   const [selectableGeographies, setSelectableGeographies] = useState<SelectOption[]>();
 
   useEffect(() => {
-    setSelectableGeographies(availableGeographies.map((geo) => {
-      return {
-        value: geo.name,
-        label: geo.name
-      }
-    }))
+    const uniqueGeographies = Array.from(new Set(availableGeographies.map(geo => geo.name)));
+    const selectable = uniqueGeographies.map((geo) => ({
+      value: geo,
+      label: geo,
+    }));
+    setSelectableGeographies(selectable);
   }, [availableGeographies]);
 
   const { boot } = useIntercom();
