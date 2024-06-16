@@ -27,6 +27,10 @@ interface SupabaseDocument {
   language: string;
 }
 
+interface ResponseJSON {
+  documents: SupabaseDocument[];
+}
+
 export const MAX_NUMBER_OF_SELECTED_DOCUMENTS = 20;
 
 export const useDocumentSelector = () => {
@@ -45,45 +49,53 @@ export const useDocumentSelector = () => {
     setAvailableDocumentTypes(getAllDocumentTypes(availableDocuments));
   }, [availableDocuments]);
 
+  
   useEffect(() => {
-    async function getDocuments() {
-
+    const getDocuments = async () => {
       const token = localStorage.getItem('authToken');
 
-      const endpoint = '/api/document';
-      
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
-      
-      const response_json = await res.json();
-
-      const docs = response_json.documents.map((x: SupabaseDocument): Document => ({
-        docType: x.doc_type,
-        fullName: x.doc_type,
-        id: x.id,
-        url: x.source_url,
-        year: `${x.year}, ${x.language}`,
-        geography: x.geography,
-        aws_s3_bucket_name: x.aws_s3_bucket_name,
-        aws_s3_object_name: x.aws_s3_object_name,
-        aws_s3_file_name: x.aws_s3_file_name,
-      }));
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+      if (!token) {
+        return;
       }
 
-      setAvailableDocuments(docs);
-    }
-    const token = localStorage.getItem('authToken');
-    if (token === null) return;
-    getDocuments();
+      const endpoint = '/api/document';
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const response_json: ResponseJSON = await res.json();
+
+        const docs = response_json.documents.map((x: SupabaseDocument): Document => ({
+          docType: x.doc_type,
+          fullName: x.doc_type,
+          id: x.id,
+          url: x.source_url,
+          year: `${x.year}, ${x.language}`,
+          geography: x.geography,
+          aws_s3_bucket_name: x.aws_s3_bucket_name,
+          aws_s3_object_name: x.aws_s3_object_name,
+          aws_s3_file_name: x.aws_s3_file_name,
+        }));
+
+        setAvailableDocuments(docs);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    void getDocuments().catch(error => console.error(error));
   }, []);
+  
 
   const [selectedDocuments, setSelectedDocuments] = useLocalStorage<
     Document[]

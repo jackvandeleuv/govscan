@@ -32,20 +32,40 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
   const { isMobile } = useIsMobile();
 
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
+
+  const createConversation = async (documentIds: string[]) => {
+    setIsLoadingConversation(true);
+    try {
+      const token = localStorage.getItem('authToken');
+
+      const response = await fetch('/api/create-conversation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ documentIds, token: token }), 
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create conversation');
+      }
+
+      const { newConversationId } = await response.json();
+
+      setIsLoadingConversation(false);
+      await router.push(`api/conversation/${newConversationId}`);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      setIsLoadingConversation(false);
+    }
+  };
+
   const handleSubmit = (event: { preventDefault: () => void }) => {
     setIsLoadingConversation(true);
     event.preventDefault();
-    const selectedDocumentIds = selectedDocuments.map((val) => val.id);
 
-    backendClient
-      .createConversation(selectedDocumentIds)
-      .then((newConversationId) => {
-        setIsLoadingConversation(false);
-        router
-          .push(`/conversation/${newConversationId}`)
-          .catch(() => console.log("error navigating to conversation"));
-      })
-      .catch(() => console.log("error creating conversation "));
+    const selectedDocumentIds = selectedDocuments.map((val) => val.id);
+    createConversation(selectedDocumentIds);
   };
 
   const {
