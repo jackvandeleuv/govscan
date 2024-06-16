@@ -48,7 +48,7 @@ export const DisplayMultiplePdfs: React.FC<DisplayMultiplePdfsProps> = ({
                       : ""
                   }`}
                 >
-                  <div>{`${file.geography.split(',')[0]}`}</div>
+                  <div>{`${file.geography.split(',')[0]!}`}</div>
                 </div>
               </button>
             </div>

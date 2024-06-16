@@ -4,6 +4,7 @@ import httpx
 import os
 import pandas as pd
 import asyncio
+import time
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 OCR_DIR = 'ocr-chunks'
@@ -40,6 +41,7 @@ async def main():
         for idx, row in df.iterrows():
             print(f'[INFO] Embedding chunk {idx}.')
             embedding = await embed(row['text'])
+            time.sleep(0.5)  # Avoid API timeout.
             embeddings.append({
                 'index': idx,
                 'embedding': embedding,

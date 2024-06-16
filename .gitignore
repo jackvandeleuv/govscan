@@ -51,3 +51,8 @@ scripts/vlrs
 scripts/ocr-text
 scripts/embeddings
 scripts/ocr-chunks
+.env.production
+.env
+.env.development
+.env.local
+scripts/supabase-data

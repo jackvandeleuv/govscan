@@ -10,7 +10,6 @@ s3 = boto3.client('s3')
 
 def download_file(bucket_name, object_name, file_name):
     try:
-        # Download the file
         s3.download_file(bucket_name, object_name, file_name)
         print(f"File {file_name} downloaded successfully.")
     except NoCredentialsError:

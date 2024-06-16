@@ -206,7 +206,7 @@ def ingest(path: str):
     print('[INFO] Completed.')
 
 
-for file_path in os.listdir(VLR_DIR)[-1 :]:  # TODO: REMOVE SLICER
+for file_path in os.listdir(VLR_DIR):
     file_path = VLR_DIR + '/' + file_path 
     if os.path.isfile(file_path):
         print(f'[INFO] Ingesting {file_path}.')

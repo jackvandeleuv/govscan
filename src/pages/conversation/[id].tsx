@@ -66,10 +66,10 @@ export default function Conversation() {
     
     // Convert between document metadata and id.
     const infoToIdMap = new Map<string, string>();
-    for (let doc of result.documents) {
+    for (const doc of result.documents) {
       const key = `${doc.geography}-${doc.fullName}`;
       infoToIdMap.set(key, doc.id);
-    };
+    }
 
     const chunks = await backendClient.fetchChunks(
       convoId,
@@ -77,7 +77,7 @@ export default function Conversation() {
     );
 
     const groupedChunks: CitationChunkMap = {};
-    for (let chunk of chunks) {
+    for (const chunk of chunks) {
       const key = `${chunk.company_ticker}-${chunk.doc_type}`
       if (key in groupedChunks) {
         groupedChunks[key]!.push(chunk);

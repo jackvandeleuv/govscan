@@ -1,23 +1,23 @@
-Year,Local / Regional Government,Country,Report(s),Language,URL
-2020,Accra,Ghana,Voluntary Local Review,English,https://www.uneca.org/sites/default/files/TCND/voluntary-local-reviews-africa/Accra-VLR.pdf
-2022,City of Toyota,Japan,Toyota City Voluntary Local Review 2022,English,https://sdgs.un.org/sites/default/files/vlrs/2022-07/toyota_city_vlr_2022.pdf
-2021,Province of DKI Jakarta,Indonesia,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/vlrs/2023-01/sdcc_dki_jakarta_vlr.pdf
-2022,Region of Lombardy,Italy,Voluntary Local Review of Lombardy,English,https://sdgs.un.org/sites/default/files/vlrs/2022-07/lombardy_voluntary-local-review-rl-eng-high-quality_english.pdf
-2022,Region of Lombardy,Italy,Voluntary Local Review Della Lombardia,Italian,https://sdgs.un.org/sites/default/files/vlrs/2022-07/lombardy_voluntary-local-review-rl-ita-high-quality_italian.pdf
-2022,City of Amman,Jordan,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/vlrs/2022-12/220929-vlr_amman.pdf
-2021,City of London,United Kingdom,London’s Progress Towards Meeting the UN’s Sustainable Development Goals,English,https://sdgs.un.org/sites/default/files/vlrs/2023-06/londons_progress_towards_the_un_sdgs.pdf
-2023,Municipality of Utrecht,Netherlands,Report on the implementation of the Sustainable Development Goals,English,https://sdgs.un.org/sites/default/files/vlrs/2024-01/utrecht-vlr-2023.pdf
-2020,Montevideo City Government,Uruguay,Montevideo Sustainable Development Goals - First Voluntary Review 2020,English,https://sdgs.un.org/sites/default/files/2021-01/Montevideo%20LVR%202020.pdf
-2023,City of Buenos Aires,Argentina,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/vlrs/2023-08/buenosairesvlr2023_eng.pdf
-2023,City of Buenos Aires,Argentina,Reporte Local Voluntario,Spanish,https://sdgs.un.org/sites/default/files/vlrs/2023-08/buenosairesvlr2023_spa.pdf
-2022,City of Buenos Aires,Argentina,Voluntary Local Review 2022,English,https://sdgs.un.org/sites/default/files/vlrs/2022-10/ba_vlr_2022_english.pdf
-2022,City of Buenos Aires,Argentina,Reporte Local Voluntario 2022,Spanish,https://sdgs.un.org/sites/default/files/vlrs/2022-10/ba_vlr_2022_espanol.pdf
-2020,City of Buenos Aires,Argentina,Voluntary Local Review - Buenos Aires Adaptation of the 2030 Agenda (2020),English,https://sdgs.un.org/sites/default/files/vlrs/2021-06/vlr_ba_2020_eng.pdf
-2019,City of Buenos Aires,Argentina,Voluntary Local Review Building a sustainable and inclusive Buenos Aires,English,https://sdgs.un.org/sites/default/files/2020-09/buenos_aires_voluntary_local_review_1_0.pdf
-2022,Bogota,Columbia,Voluntary Local Review,English,https://bogota.gov.co/bog/voluntary_local_review_sdgs_bogota_2022.pdf
-2021,City of Los Angeles,United States,2021 Voluntary Local Review of Progress Toward The Sustainable Development Goals in Los Angeles,English,https://sdgs.un.org/sites/default/files/vlrs/2021-11/losangeles_2021_vlr.pdf
-2021,City of Orlando,United States,Orlando and the Sustainable Development Goals - A Voluntary Local Review of Progress,English,https://sdgs.un.org/sites/default/files/2021-11/Orlando%20VLR%202021.pdf
-2020,City of Pittsburgh,United States,Pittsburgh and the Sustainable Development Goals - A Voluntary Local Review of Progress,English,https://sdgs.un.org/sites/default/files/2020-12/Pittsburgh%20VLR%202020%20Final%20Draft.pdf
-2020,State of Hawai'i,United States,ALOHA+ CHALLENGE 2020 BENCHMARK REPORT: Hawai‘i’s Voluntary Local Review of Progress on the Sustainable Development Goals,English,https://sdgs.un.org/sites/default/files/vlrs/2022-03/hawaii_vlr_aloha_2020_benchmark_report_fullreport.pdf
-2019,City of Los Angeles,United States,Toolbar items Manage Administration menu Tools Content Shortcuts dannia.philipp@un.org A Voluntary Local Review of Pr,English,https://sdgs.un.org/sites/default/files/vlrs/2021-06/las_voluntary_local_review_of_sdgs_2019.pdf
-2018,City of New York,United States,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/2020-09/NYC_VLR_2018_FINAL.pdf
+Year,Local / Regional Government,Country,Report(s),Language,URL,UUID
+2020,Accra,Ghana,Voluntary Local Review,English,https://www.uneca.org/sites/default/files/TCND/voluntary-local-reviews-africa/Accra-VLR.pdf,2a6efd8a-a789-4e75-a74f-2e28ca81d71f
+2022,City of Toyota,Japan,Toyota City Voluntary Local Review 2022,English,https://sdgs.un.org/sites/default/files/vlrs/2022-07/toyota_city_vlr_2022.pdf,69cd89de-dc42-4031-a80c-63bffca905ca
+2021,Province of DKI Jakarta,Indonesia,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/vlrs/2023-01/sdcc_dki_jakarta_vlr.pdf,cace28c8-5083-442a-9a0e-ea6cd84c4332
+2022,Region of Lombardy,Italy,Voluntary Local Review of Lombardy,English,https://sdgs.un.org/sites/default/files/vlrs/2022-07/lombardy_voluntary-local-review-rl-eng-high-quality_english.pdf,178bbfc9-1bf5-4dc5-a78f-fd358b17b2f3
+2022,Region of Lombardy,Italy,Voluntary Local Review Della Lombardia,Italian,https://sdgs.un.org/sites/default/files/vlrs/2022-07/lombardy_voluntary-local-review-rl-ita-high-quality_italian.pdf,d3d65c1e-dfac-4b62-8db8-919bb02cb900
+2022,City of Amman,Jordan,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/vlrs/2022-12/220929-vlr_amman.pdf,8234e0f9-048b-42fc-b2df-497f03b76cbe
+2021,City of London,United Kingdom,London’s Progress Towards Meeting the UN’s Sustainable Development Goals,English,https://sdgs.un.org/sites/default/files/vlrs/2023-06/londons_progress_towards_the_un_sdgs.pdf,2b5ca4a8-44ce-4cbe-8efb-c4c788b72af7
+2023,Municipality of Utrecht,Netherlands,Report on the implementation of the Sustainable Development Goals,English,https://sdgs.un.org/sites/default/files/vlrs/2024-01/utrecht-vlr-2023.pdf,e0f535a6-8fbd-47bc-ba47-ac45ffbcda4e
+2020,Montevideo City Government,Uruguay,Montevideo Sustainable Development Goals - First Voluntary Review 2020,English,https://sdgs.un.org/sites/default/files/2021-01/Montevideo%20LVR%202020.pdf,e3fd3ade-9d4e-48c6-bfba-995724a2b905
+2023,City of Buenos Aires,Argentina,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/vlrs/2023-08/buenosairesvlr2023_eng.pdf,1c75bb15-8157-4191-9e21-98cef893513e
+2023,City of Buenos Aires,Argentina,Reporte Local Voluntario,Spanish,https://sdgs.un.org/sites/default/files/vlrs/2023-08/buenosairesvlr2023_spa.pdf,f74b5507-caf3-4351-b1df-7f4c9f90be34
+2022,City of Buenos Aires,Argentina,Voluntary Local Review 2022,English,https://sdgs.un.org/sites/default/files/vlrs/2022-10/ba_vlr_2022_english.pdf,2bb8c409-9a47-4df4-9b2d-ec9d4076ad62
+2022,City of Buenos Aires,Argentina,Reporte Local Voluntario 2022,Spanish,https://sdgs.un.org/sites/default/files/vlrs/2022-10/ba_vlr_2022_espanol.pdf,854c586d-f9e6-42fb-a7a6-01e6ca1b9f99
+2020,City of Buenos Aires,Argentina,Voluntary Local Review - Buenos Aires Adaptation of the 2030 Agenda (2020),English,https://sdgs.un.org/sites/default/files/vlrs/2021-06/vlr_ba_2020_eng.pdf,b3493dfe-5bba-4d5f-995c-f2abda7849aa
+2019,City of Buenos Aires,Argentina,Voluntary Local Review Building a sustainable and inclusive Buenos Aires,English,https://sdgs.un.org/sites/default/files/2020-09/buenos_aires_voluntary_local_review_1_0.pdf,2dbad08b-fa4e-45be-b20a-f1c2aabfe4f8
+2022,Bogota,Columbia,Voluntary Local Review,English,https://bogota.gov.co/bog/voluntary_local_review_sdgs_bogota_2022.pdf,913befa5-79dd-4e0c-8f83-ec2765076e40
+2021,City of Los Angeles,United States,2021 Voluntary Local Review of Progress Toward The Sustainable Development Goals in Los Angeles,English,https://sdgs.un.org/sites/default/files/vlrs/2021-11/losangeles_2021_vlr.pdf,591934e7-05b2-4205-b16f-a5d48d39780f
+2021,City of Orlando,United States,Orlando and the Sustainable Development Goals - A Voluntary Local Review of Progress,English,https://sdgs.un.org/sites/default/files/2021-11/Orlando%20VLR%202021.pdf,1859ce6d-99d4-4144-9b34-34a026aae7d4
+2020,City of Pittsburgh,United States,Pittsburgh and the Sustainable Development Goals - A Voluntary Local Review of Progress,English,https://sdgs.un.org/sites/default/files/2020-12/Pittsburgh%20VLR%202020%20Final%20Draft.pdf,e763ce5d-5ddb-4260-a818-3e8467fe2e0a
+2020,State of Hawai'i,United States,ALOHA+ CHALLENGE 2020 BENCHMARK REPORT: Hawai‘i’s Voluntary Local Review of Progress on the Sustainable Development Goals,English,https://sdgs.un.org/sites/default/files/vlrs/2022-03/hawaii_vlr_aloha_2020_benchmark_report_fullreport.pdf,bf5e77c1-1165-4630-b17f-0424ffad15a6
+2019,City of Los Angeles,United States,Toolbar items Manage Administration menu Tools Content Shortcuts dannia.philipp@un.org A Voluntary Local Review of Pr,English,https://sdgs.un.org/sites/default/files/vlrs/2021-06/las_voluntary_local_review_of_sdgs_2019.pdf,53df4a33-dc45-4fe6-b5b8-6c902f28eb8c
+2018,City of New York,United States,Voluntary Local Review,English,https://sdgs.un.org/sites/default/files/2020-09/NYC_VLR_2018_FINAL.pdf,afd5c6f4-e1d1-410e-a7e3-6b7686bbd1ed

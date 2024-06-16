@@ -1,5 +1,5 @@
 {
-  "name": "llama-app-frontend",
+  "name": "govscan-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
   "dependencies": {
     "@headlessui/react": "1.7.15",
     "@heroicons/react": "2.0.18",
-    "@sentry/nextjs": "^7.57.0",
+    "@supabase/supabase-js": "^2.43.4",
     "@t3-oss/env-nextjs": "^0.3.1",
     "@tailwindcss/forms": "0.5.3",
     "@wojtekmaj/react-hooks": "1.17.2",
@@ -21,7 +21,8 @@
     "lodash": "^4.17.21",
     "lodash.debounce": "^4.0.8",
     "md5": "2.3.0",
-    "next": "^13.5.6",
+    "next": "^14.2.4",
+    "pdfjs-dist": "^4.3.136",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-ga4": "^2.1.0",

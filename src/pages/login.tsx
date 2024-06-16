@@ -2,7 +2,7 @@ import React, { FormEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 
 interface AuthString {
-    username: string;
+    email: string;
     password: string;
 }
 
@@ -11,13 +11,16 @@ interface LoginProps {
 }
 
 function Login({ setAuthString }: LoginProps) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setAuthString({ username, password });
+    setAuthString({
+      email: email,
+      password: password
+    });
   };
 
   const handleSignupRedirect = () => {
@@ -28,13 +31,14 @@ function Login({ setAuthString }: LoginProps) {
       });
   };
 
+
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-lg shadow-md w-80">
       <h1 className="text-2xl font-bold mb-6 text-center">GovScan Sign In</h1>
       <form onSubmit={handleSubmit} className="flex flex-col">
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Username:</label>
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+          <label className="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+          <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
         </div>
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-bold mb-2">Password:</label>
@@ -45,7 +49,7 @@ function Login({ setAuthString }: LoginProps) {
         </div>
       </form>
       <div className="mt-4 text-center">
-        <p className="text-gray-700 text-sm">Don't have a password? 
+        <p className="text-gray-700 text-sm">{"Don't have a password?"}
           <button onClick={handleSignupRedirect} className="text-blue-500 hover:text-blue-700 font-bold">Create an account.</button>
         </p>
       </div>
