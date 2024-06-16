@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { AuthString } from '../index';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -20,7 +21,7 @@ export default async function handler(
     return;
   }
 
-  const { email, password } = req.body;
+  const { email, password } = req.body as AuthString;
 
   if (!email || !password) {
     res.status(400).json({ message: 'Email and password are required' });

@@ -14,7 +14,18 @@ import {
   getAvailableYears,
 } from "~/utils/landing-page-selection";
 import useLocalStorage from "./utils/useLocalStorage";
-import { backendClient } from "~/api/backend";
+
+interface SupabaseDocument {
+  doc_type: string;
+  id: string;
+  source_url: string;
+  year: string;
+  geography: string;
+  aws_s3_bucket_name: string;
+  aws_s3_object_name: string;
+  aws_s3_file_name: string;
+  language: string;
+}
 
 export const MAX_NUMBER_OF_SELECTED_DOCUMENTS = 20;
 
@@ -36,12 +47,42 @@ export const useDocumentSelector = () => {
 
   useEffect(() => {
     async function getDocuments() {
-      const docs = await backendClient.fetchDocuments();
+
+      const token = localStorage.getItem('authToken');
+
+      const endpoint = '/api/document';
+      
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+      
+      const response_json = await res.json();
+
+      const docs = response_json.documents.map((x: SupabaseDocument): Document => ({
+        docType: x.doc_type,
+        fullName: x.doc_type,
+        id: x.id,
+        url: x.source_url,
+        year: `${x.year}, ${x.language}`,
+        geography: x.geography,
+        aws_s3_bucket_name: x.aws_s3_bucket_name,
+        aws_s3_object_name: x.aws_s3_object_name,
+        aws_s3_file_name: x.aws_s3_file_name,
+      }));
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       setAvailableDocuments(docs);
     }
     const token = localStorage.getItem('authToken');
     if (token === null) return;
-    getDocuments().catch(() => console.error("could not fetch documents"));
+    getDocuments();
   }, []);
 
   const [selectedDocuments, setSelectedDocuments] = useLocalStorage<

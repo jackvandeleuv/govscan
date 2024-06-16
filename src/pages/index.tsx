@@ -44,7 +44,7 @@ const LandingPage: NextPage = () => {
  
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       if (authString === null) return;
 
       try {
@@ -75,7 +75,6 @@ const LandingPage: NextPage = () => {
     })();
   }, [authString]);
 
-  
 
   return (
     <>
