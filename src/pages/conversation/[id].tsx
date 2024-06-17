@@ -20,6 +20,7 @@ import useIsMobile from "~/hooks/utils/useIsMobile";
 import { group } from "console";
 import AuthPanel from "~/components/dropdowns/AuthPanel";
 import CollapseButton from "~/components/conversations/CollapseButton";
+import { ResponseJSON } from "~/hooks/useDocumentSelector";
 
 interface CitationChunkMap {
   [key: string]: CitationChunks[];
@@ -132,15 +133,33 @@ export default function Conversation() {
 
   useEffect(() => {
     const fetchConversation = async (id: string) => {
-      const result = await backendClient.fetchConversation(id);
-      
-      if (result.documents) {
-        setSelectedDocuments(result.documents);
+      const endpoint = '/api/document';
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      if (result.messages) {
-        setMessages(result.messages);
-      }
+      const response_json: ResponseJSON = await res.json(); 
+      console.log('Backend response:')
+      console.log(response_json)
+    //   if (result.documents) {
+    //     setSelectedDocuments(result.documents);
+    //   }
+
+    //   if (result.messages) {
+    //     setMessages(result.messages);
+    //   }
+    // };
     };
     if (conversationId) {
       fetchConversation(conversationId).catch(() =>
@@ -149,6 +168,7 @@ export default function Conversation() {
     }
   }, [conversationId, setMessages]);
 
+  
   // Keeping this in this file for now because this will be subject to change
   const submit = () => {
     if (!userMessage || !conversationId) {

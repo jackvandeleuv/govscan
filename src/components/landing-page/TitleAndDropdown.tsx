@@ -53,7 +53,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
       const { newConversationId } = await response.json();
 
       setIsLoadingConversation(false);
-      await router.push(`api/conversation/${newConversationId}`);
+      await router.push(`conversation/${newConversationId}`);
     } catch (error) {
       console.error('Error creating conversation:', error);
       setIsLoadingConversation(false);

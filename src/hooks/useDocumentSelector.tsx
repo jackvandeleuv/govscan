@@ -27,7 +27,7 @@ interface SupabaseDocument {
   language: string;
 }
 
-interface ResponseJSON {
+export interface ResponseJSON {
   documents: SupabaseDocument[];
 }
 
@@ -49,7 +49,7 @@ export const useDocumentSelector = () => {
     setAvailableDocumentTypes(getAllDocumentTypes(availableDocuments));
   }, [availableDocuments]);
 
-  
+
   useEffect(() => {
     const getDocuments = async () => {
       const token = localStorage.getItem('authToken');
