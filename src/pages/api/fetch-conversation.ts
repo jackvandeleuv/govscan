@@ -9,7 +9,7 @@ type ResponseData = {
 };
 
 interface RequestBody {
-  conversationId: string;
+  id: string;
   token: string;
 }
 
@@ -23,28 +23,44 @@ export default async function handler(
   }
 
   const requestBody = req.body as RequestBody;
-  const conversationId = requestBody.conversationId;
+  const id = requestBody.id;
   const token = requestBody.token;
 
-  const url = `${process.env.SUPABASE_URL!}/rest/v1/rpc/fetch_conversation`;
   const headers = new Headers({
     'Content-Type': 'application/json',
     'apikey': process.env.SUPABASE_KEY!,
     'Authorization': `Bearer ${token}`
   });
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({ conversationId })
+  const documentUrl = `${process.env.SUPABASE_URL!}/rest/v1/document?select=id,language,url,geography,year,aws_s3_bucket_name,aws_s3_object_name,aws_s3_file_name,doc_type,conversationdocument!inner(conversation_id)&conversationdocument.conversation_id=eq.${id}`;
+  const documentRequest = fetch(documentUrl, {
+    method: 'GET',
+    headers: headers
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    console.error('Error fetching conversation:', error);
+  const messageUrl = `${process.env.SUPABASE_URL!}/rest/v1/message?select=id,content,role,updated_at,created_at&conversation_id=eq.${id}`;
+  const messageRequest = fetch(messageUrl, {
+    method: 'GET',
+    headers: headers
+  });
+
+
+  const documentResponse = await documentRequest;
+  if (!documentResponse.ok) {
+    const error = await documentResponse.json();
+    console.error('Error fetching document:', error);
     return;
   }
+  const documents = await documentResponse.json();
 
-  const data = await response.json();
-  console.log('Conversation data:', data);
+  const messageResponse = await messageRequest;
+  if (!messageResponse.ok) {
+    const error = await messageResponse.json();
+    console.error('Error fetching message:', error);
+    return;
+  }
+  const messages = await messageResponse.json();
+
+  res.status(200).json({ documents, messages, message: 'Success' });
+
 }

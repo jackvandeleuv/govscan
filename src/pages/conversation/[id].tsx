@@ -26,6 +26,12 @@ interface CitationChunkMap {
   [key: string]: CitationChunks[];
 }
 
+interface FetchConversationJSON {
+  messages?: Message[];
+  documents?: Document[];
+  message: string;
+};
+
 export default function Conversation() {
   const router = useRouter();
   const { id } = router.query;
@@ -133,7 +139,7 @@ export default function Conversation() {
 
   useEffect(() => {
     const fetchConversation = async (id: string) => {
-      const endpoint = '/api/document';
+      const endpoint = '/api/fetch-conversation';
       const token = localStorage.getItem('authToken');
       if (!token) return;
 
@@ -142,24 +148,23 @@ export default function Conversation() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ id, token }),
       });
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const response_json: ResponseJSON = await res.json(); 
-      console.log('Backend response:')
-      console.log(response_json)
-    //   if (result.documents) {
-    //     setSelectedDocuments(result.documents);
-    //   }
+      const response_json: FetchConversationJSON = await res.json(); 
 
-    //   if (result.messages) {
-    //     setMessages(result.messages);
-    //   }
-    // };
+      if (response_json.documents) {
+        setSelectedDocuments(response_json.documents);
+      }
+
+      if (response_json.messages) {
+        setMessages(response_json.messages);
+      }
+    
     };
     if (conversationId) {
       fetchConversation(conversationId).catch(() =>
