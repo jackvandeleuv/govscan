@@ -176,17 +176,17 @@ export default function Conversation() {
   
   // Keeping this in this file for now because this will be subject to change
   const submit = () => {
-    if (!userMessage || !conversationId) {
-      return;
-    }
+    if (!userMessage || !conversationId) return;
+    
+    const token = localStorage.getItem('authToken');
+
+    if (!token) return;
 
     setIsMessagePending(true);
     userSendMessage(userMessage);
     setUserMessage("");
 
-    const messageEndpoint =
-      backendUrl + `api/conversation/${conversationId}/message`;
-    const url = messageEndpoint + `?user_message=${encodeURI(userMessage)}`;
+    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&token=${token}`;
 
     const events = new EventSource(url);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument

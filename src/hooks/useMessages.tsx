@@ -33,6 +33,8 @@ const useMessages = (conversationId: string) => {
       if (existingMessageIndex > -1) {
         const updatedMessages = [...prevMessages];
         updatedMessages[existingMessageIndex] = message;
+        console.log('updatedMessages:')
+        console.log(updatedMessages)
         return updatedMessages;
       }
 
