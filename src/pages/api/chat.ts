@@ -15,12 +15,12 @@ interface SearchResult {
   message_id?: string;
 }
 
-interface Citation {
-    document_id: string;
-    page_number: number;
-    score: number;
-    text: string;
-}
+// interface Citation {
+//     document_id: string;
+//     page_number: number;
+//     score: number;
+//     text: string;
+// }
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -39,17 +39,17 @@ async function getEmbedding(query: string): Promise<number[]> {
     encoding_format: 'float'
   });
 
-  const response = await fetch('https://api.openai.com/v1/embeddings', {
+  const embedResponse = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: headers,
     body: data
   });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  if (!embedResponse.ok) {
+    throw new Error(`HTTP error! status: ${embedResponse.status}`);
   }
 
-  const responseJson = await response.json();
+  const responseJson = await embedResponse.json();
   return responseJson.data[0].embedding;
 }
 
@@ -101,21 +101,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { conversation_id, message, token } = req.query;
+  const { conversation_id, message: userMessage, token } = req.query;
 
-  if (!conversation_id || !message) {
+  if (!conversation_id || !userMessage) {
     res.status(400).json({ message: 'Missing conversation_id / message / token' });
     return;
-  }
+  };
 
-  const queryVector = getEmbedding(message as string);
+  const messageUrl = `${process.env.SUPABASE_URL!}/rest/v1/message`;
+  const user_created_at = new Date().toISOString();
 
-  const url = `${process.env.SUPABASE_URL!}/rest/v1/rpc/semantic_search`;
   const headers: HeadersInit = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
     'apikey': process.env.SUPABASE_KEY!,
   };
+
+  // POST user message
+  fetch(messageUrl, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      role: 'user', 
+      content: userMessage,
+      conversation_id: conversation_id,
+      created_at: user_created_at
+    })
+  });
+
+  const queryVector = getEmbedding(userMessage as string);
+
+  const searchUrl = `${process.env.SUPABASE_URL!}/rest/v1/rpc/semantic_search`;
 
   const body = JSON.stringify({
     conv_id: conversation_id,
@@ -123,7 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     query_vector: JSON.stringify(await queryVector),
   });
 
-  const response = await fetch(url, {
+  const response = await fetch(searchUrl, {
     method: 'POST',
     headers: headers,
     body: body,
@@ -136,23 +155,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  const full_prompt = `Search Results: ${JSON.stringify(searchResults)}\n\nMessage: ${message}`;
-  const message_id = uuidv4();
-  const created_at = Date.now();
+  const full_prompt = `Search Results: ${JSON.stringify(searchResults)}\n\nMessage: ${userMessage}`;
+  const assistant_message_id = uuidv4();
 
   searchResults.forEach(element => {
-    element.message_id = message_id;
+    element.message_id = assistant_message_id;
   });
   
-  const subProcesses = makeSubprocesses(searchResults, message_id);
+  const subProcesses = makeSubprocesses(searchResults, assistant_message_id);
 
+  const assistant_created_at = new Date().toISOString();
   const data = {
-    id: message_id,
+    id: assistant_message_id,
     content: '',
     role: "assistant",
     status: "PENDING",
     conversationId: conversation_id,
-    created_at: created_at,
+    created_at: assistant_created_at,
     sub_processes: subProcesses
   };
 
@@ -175,6 +194,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data.status = 'SUCCESS';
     res.write(`data: ${JSON.stringify(data)}\n\n`);
     res.end();
+
+    // POST assistant message
+    fetch(messageUrl, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        role: 'assistant', 
+        content: data.content,
+        conversation_id: conversation_id,
+        created_at: assistant_created_at,
+        id: assistant_message_id
+      })
+    });
 
   } catch (error) {
     console.error('Error in response stream:', error);

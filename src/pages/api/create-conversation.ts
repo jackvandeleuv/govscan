@@ -52,8 +52,6 @@ export default async function handler(
         body: JSON.stringify({ conversation_id: conversationId, document_id: docId }),
       });
 
-      const conversationDocumentData = await conversationDocumentResponse.text();
-
       if (!conversationDocumentResponse.ok) {
         throw new Error(`HTTP error! status: ${conversationDocumentResponse.status}`);
       }
