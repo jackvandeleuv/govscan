@@ -4,6 +4,8 @@ import type { NextPage } from "next";
 import { TitleAndDropdown } from "~/components/landing-page/TitleAndDropdown";
 import { useState, useEffect } from "react";
 import Login from './login';
+import { getToken } from "./supabase/manageTokens";
+import supabase from "./supabase/client";
 
 export interface AuthString {
   email: string;
@@ -26,12 +28,13 @@ const LandingPage: NextPage = () => {
 
 
   useEffect(() => {
-    if (hasMounted) {
-      const token = localStorage.getItem('isLoggedIn');
-      if (token) {
-        setIsLoggedIn(token === 'true');
-      }
-    }
+    const checkToken = async () => {
+      if (hasMounted) {
+        const token = await getToken();
+        setIsLoggedIn(token !== null)
+      };
+    };
+    checkToken();
   }, [hasMounted]);
 
   
@@ -48,27 +51,19 @@ const LandingPage: NextPage = () => {
       if (authString === null) return;
 
       try {
-        const endpoint = '/api/login';
-        
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: authString.email, password: authString.password }),
+        const { email, password } = authString;
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+      
+        if (error) {
+          console.error('Invalid email or password' );
+          return;
         }
-
-        const data = (await res.json()) as AuthResponse;
-        if (data.token) {
-          setIsLoggedIn(true);
-          localStorage.setItem('authToken', data.token);
-        } else {
-          setIsLoggedIn(false);
-        }
+      
+        const token = data.session?.access_token;
+        setIsLoggedIn(token !== null);
       } catch (error) {
         console.error('Error during authentication:', error);
       }

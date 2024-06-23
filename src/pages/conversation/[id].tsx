@@ -21,6 +21,7 @@ import { group } from "console";
 import AuthPanel from "~/components/dropdowns/AuthPanel";
 import CollapseButton from "~/components/conversations/CollapseButton";
 import { ResponseJSON } from "~/hooks/useDocumentSelector";
+import { isTokenExpired, getToken } from "../supabase/manageTokens";
 
 interface CitationChunkMap {
   [key: string]: CitationChunks[];
@@ -140,8 +141,12 @@ export default function Conversation() {
   useEffect(() => {
     const fetchConversation = async (id: string) => {
       const endpoint = '/api/fetch-conversation';
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
+
+      const token = await getToken();
+      if (!token) {
+        console.error('Could not get access token.')
+        return;
+      };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -175,12 +180,14 @@ export default function Conversation() {
 
   
   // Keeping this in this file for now because this will be subject to change
-  const submit = () => {
+  const submit = async () => {
     if (!userMessage || !conversationId) return;
-    
-    const token = localStorage.getItem('authToken');
 
-    if (!token) return;
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    };
 
     setIsMessagePending(true);
     userSendMessage(userMessage);
@@ -254,8 +261,11 @@ export default function Conversation() {
 
 
   async function handleExport() {
-    const token = localStorage.getItem('authToken');
-    if (!token) return;
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    };
     
     const endpoint = '/api/download-chat';
 

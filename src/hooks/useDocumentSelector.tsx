@@ -14,6 +14,7 @@ import {
   getAvailableYears,
 } from "~/utils/landing-page-selection";
 import useLocalStorage from "./utils/useLocalStorage";
+import { isTokenExpired, getToken } from "~/pages/supabase/manageTokens";
 
 interface SupabaseDocument {
   doc_type: string;
@@ -49,11 +50,11 @@ export const useDocumentSelector = () => {
 
   useEffect(() => {
     const getDocuments = async () => {
-      const token = localStorage.getItem('authToken');
-
+      const token = await getToken();
       if (!token) {
+        console.error('Could not get access token.')
         return;
-      }
+      };
 
       const endpoint = '/api/document';
 

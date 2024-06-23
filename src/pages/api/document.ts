@@ -48,7 +48,6 @@ export default async function handler(
     res.status(200).json({ message: 'Documents retrieved successfully', documents });
 
   } catch (error) {
-    console.error(error)
     console.error('Error fetching documents:', error);
     res.status(500).json({ message: error as string });
   }

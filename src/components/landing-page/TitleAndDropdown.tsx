@@ -21,6 +21,7 @@ import { useIntercom } from "react-use-intercom";
 import { LoadingSpinner } from "~/components/basics/Loading";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import AuthPanel from "../dropdowns/AuthPanel";
+import { isTokenExpired, getToken } from "~/pages/supabase/manageTokens";
 
 interface TitleAndDropdownProps {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
@@ -36,7 +37,11 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
   const createConversation = async (documentIds: string[]) => {
     setIsLoadingConversation(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = await getToken();
+      if (!token) {
+        console.error('Could not get access token.')
+        return;
+      };
 
       const response = await fetch('/api/create-conversation', {
         method: 'POST',
@@ -207,10 +212,17 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
                 Add
               </button>
 
-              <div className="absolute -right-[10px] bottom-[-4px] w-[140px] font-nunito text-[10px] text-[#7F7F7F]">
+              {/* <div className="absolute -right-[10px] bottom-[-4px] w-[140px] font-nunito text-[10px] text-[#7F7F7F]">
                 {" "}
                 <span className="font-bold">Shift + Enter </span>to add to list{" "}
-              </div>
+              </div> */}
+
+              {/* <button
+                className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+                onClick={handleAddDocument}
+              >
+                Add All
+              </button> */}
             </div>
           </div>
 

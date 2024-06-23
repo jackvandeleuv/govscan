@@ -30,7 +30,7 @@ interface GetConversationReturnType {
 
 class BackendClient {
   private async get(endpoint: string) {
-    let token = localStorage.getItem('authToken');
+    let token = null;
     if (token === null) {
       console.error('Invalid auth token.');
       token = '';
