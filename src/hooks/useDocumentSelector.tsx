@@ -18,12 +18,9 @@ import useLocalStorage from "./utils/useLocalStorage";
 interface SupabaseDocument {
   doc_type: string;
   id: string;
-  source_url: string;
+  url: string;
   year: string;
   geography: string;
-  aws_s3_bucket_name: string;
-  aws_s3_object_name: string;
-  aws_s3_file_name: string;
   language: string;
 }
 
@@ -79,12 +76,9 @@ export const useDocumentSelector = () => {
           docType: x.doc_type,
           fullName: x.doc_type,
           id: x.id,
-          url: x.source_url,
+          url: x.url,
           year: `${x.year}, ${x.language}`,
-          geography: x.geography,
-          aws_s3_bucket_name: x.aws_s3_bucket_name,
-          aws_s3_object_name: x.aws_s3_object_name,
-          aws_s3_file_name: x.aws_s3_file_name,
+          geography: x.geography
         }));
 
         setAvailableDocuments(docs);

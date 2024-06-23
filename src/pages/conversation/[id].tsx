@@ -252,6 +252,39 @@ export default function Conversation() {
     setCollapsed(!collapsed);
   }
 
+
+  async function handleExport() {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    
+    const endpoint = '/api/download-chat';
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, conversation_id: conversationId }),
+    });
+
+    if (!res.ok) {
+      console.error('Failed to export chat:', res.statusText);
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat_${conversationId}.docx`;  
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+  };
+
+
   if (isMobile) {
     return (
       <div className="landing-page-gradient-1 relative flex h-screen w-screen items-center justify-center">
@@ -292,15 +325,19 @@ export default function Conversation() {
                   <BiArrowBack className="mr-1" /> Back to Document Selection
                 </button>
                 <button
-                  onClick={toggleShareModal}
+                  onClick={handleExport}
                   className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
                 >
-                  <div className="text-xs font-medium">Share</div>
+                  <div className="text-xs font-medium">Export</div>
                   <FiShare className="ml-1" size={12} />
                 </button>
-                <CollapseButton 
+                <button
                   onClick={togglePDF}
-                />
+                  className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
+                >
+                  <div className="text-xs font-medium">Toggle PDF</div>
+                  <FiShare className="ml-1" size={12} />
+                </button>
               </div>
             </div>
             <div className={`flex max-h-[calc(100vh-114px)] ${collapsed ? 'w-full' : 'w-[44vw]'} flex-grow flex-col overflow-scroll`}>

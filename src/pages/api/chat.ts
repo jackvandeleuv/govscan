@@ -5,6 +5,8 @@ import { MessageSubprocessSource, BackendCitation } from '~/types/conversation';
 import { DocumentColorEnum } from "~/utils/colors";
 
 const NUM_CHUNKS = 5;
+// const CHAT_MODEL = "gpt-4o";
+const CHAT_MODEL = "gpt-3.5-turbo";
 
 
 interface SearchResult {
@@ -181,7 +183,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: CHAT_MODEL,
       messages: [{ role: "user", content: full_prompt }],
       max_tokens: 1024,
       stream: true

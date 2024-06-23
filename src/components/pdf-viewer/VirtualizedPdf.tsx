@@ -304,13 +304,12 @@ const VirtualizedPDF = forwardRef<PdfFocusHandler, VirtualizedPDFProps>(
     //   };
     // }, [file.url]);
 
-
     return (
       <div
         className={`relative h-[calc(100vh-44px)] w-full border-gray-pdf bg-gray-pdf`}
       >
         <Document
-          key={file.url}
+          key={file.id}
           onItemClick={onItemClick}
           file={file.url}
           onLoadSuccess={onDocumentLoadSuccess}

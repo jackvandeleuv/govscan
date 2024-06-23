@@ -93,7 +93,7 @@ export default async function handler(
     body: citationsBody,
   });
 
-  const documentUrl = `${process.env.SUPABASE_URL!}/rest/v1/document?select=id,language,url,geography,year,aws_s3_bucket_name,aws_s3_object_name,aws_s3_file_name,doc_type,conversationdocument!inner(conversation_id)&conversationdocument.conversation_id=eq.${id}`;
+  const documentUrl = `${process.env.SUPABASE_URL!}/rest/v1/document?select=id,language,url,geography,year,doc_type,conversationdocument!inner(conversation_id)&conversationdocument.conversation_id=eq.${id}`;
   const documentRequest = fetch(documentUrl, {
     method: 'GET',
     headers: headers
@@ -123,39 +123,6 @@ export default async function handler(
   }
   const documents = await documentResponse.json();
 
-  // [   Citations
-  //   {
-  //     text: 'its inspection capacity to ensure that schools, including private ones, are equipped with the relevant basic facilities. SDG 5: Achieve gender equality and A63 Goal 18: Engaged and empowered youth and empower all women and girls children. Indicator 5.2.2: Proportion of women and girls aged 15 years and older subjected to sexual violence by persons other than an intimate partner in the previous 12 months, by age and place of occurrence Comprehensive data on proportion of women and girls aged 15 years and older subjected to sexual violence by persons other than an intimate partner in the previous 12 months',
-  //     page_number: 30,
-  //     document_id: '2a6efd8a-a789-4e75-a74f-2e28ca81d71f'
-  //     message_id: '2a6efd8a-a789-4e75-a74f-2e28ca81d71f'
-  //   },
-
-  // export interface MessageSubProcess extends hasId {
-  //   messageId: string;
-  //   content: string;
-  //   source: MessageSubprocessSource;
-  //   metadata_map?: MetaDataMap;
-  // }
-
-  // export interface MetaDataMap {
-  //   sub_question?: SubQuestion;
-  //   sub_questions?: SubQuestion[];
-  // }
-  
-  // export interface SubQuestion {
-  //   question: string;
-  //   answer?: string;
-  //   citations?: BackendCitation[];
-  // }
-  
-  // export interface BackendCitation {
-  //   document_id: string;
-  //   page_number: number;
-  //   score: number;
-  //   text: string;
-  // }
-
   if (citations === null) {
     res.status(200).json({ documents, messages, message: 'Success' });
     return;
@@ -170,19 +137,6 @@ export default async function handler(
       citationMap.set(key, [citation]);
     }
   };
-
-  // select=id,content,role,updated_at,created_at
-
-  // export interface Message extends hasId {
-  //   content: string;
-  //   role: ROLE;
-  //   status: MESSAGE_STATUS;
-  //   conversationId: string;
-  //   sub_processes?: MessageSubProcess[];  // One per document
-  //   created_at: Date;
-  // }
-
-
   
   const updatedMessages: Message[] = [];
   for (const message of messages) {

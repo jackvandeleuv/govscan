@@ -25,12 +25,7 @@ const ExportLinkModal: React.FC<ExportLinkModalProps> = ({
   }, [isOpen]);
 
   return (
-    <Modal isOpen={isOpen} toggleModal={toggleModal} title="Share Conversation">
-      <p className="mb-6 mt-2 text-sm text-gray-500">
-        Note: this is a public page. Anyone with this link can view the
-        contents of the page. This statement is for informational purposes only.
-      </p>
-
+    <Modal isOpen={isOpen} toggleModal={toggleModal} title="Download CSV">
       <div className="flex items-center space-x-2">
         <input
           ref={inputRef}

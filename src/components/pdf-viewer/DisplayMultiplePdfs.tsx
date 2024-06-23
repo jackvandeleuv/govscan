@@ -19,14 +19,13 @@ export const DisplayMultiplePdfs: React.FC<DisplayMultiplePdfsProps> = ({
         {pdfs.map((file) => {
           return (
             <div
-              key={`viewing-${file.url}`}
+              key={`viewing-${file.id}`}
               className={cx({ hidden: !isActivePdf(file) })}
             >
               <ViewPdf file={file} />
             </div>
           );
         })}
-
         <div className="flex h-full w-[80px] flex-col">
           <div className="flex h-[43px] w-[80px] items-center justify-center border-b border-l font-bold text-gray-90 "></div>
           {pdfs.map((file, index) => (

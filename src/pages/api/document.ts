@@ -28,7 +28,7 @@ export default async function handler(
     return;
   }
 
-  const url = `${process.env.SUPABASE_URL!}/rest/v1/document?select=id,language,source_url,geography,year,aws_s3_bucket_name,aws_s3_object_name,aws_s3_file_name,doc_type`;
+  const url = `${process.env.SUPABASE_URL!}/rest/v1/document?select=id,language,url,geography,year,doc_type`;
 
   const headers: HeadersInit = {
     'Authorization': `Bearer ${token}`,
