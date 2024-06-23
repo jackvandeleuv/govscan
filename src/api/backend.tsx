@@ -93,9 +93,6 @@ class BackendClient {
     const res = await this.get(endpoint);
     const data = (await res.json()) as GetConversationPayload;
 
-    console.log("Data returned from backendClient.fetchConversation():")
-    console.log(data);
-
     return {
       messages: data.messages,
       documents: fromBackendDocumentToFrontend(data.documents),

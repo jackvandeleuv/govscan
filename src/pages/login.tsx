@@ -27,7 +27,7 @@ function Login({ setAuthString }: LoginProps) {
     router
       .push('/signup')
       .catch(() => {
-        console.log("error navigating to sign up page");
+        console.error("error navigating to sign up page");
       });
   };
 

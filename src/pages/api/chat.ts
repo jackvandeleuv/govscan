@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAI } from 'openai'; 
 import { v4 as uuidv4 } from "uuid";
-import { MessageSubprocessSource } from '~/types/conversation';
+import { MessageSubprocessSource, BackendCitation } from '~/types/conversation';
+import { DocumentColorEnum } from "~/utils/colors";
 
 const NUM_CHUNKS = 5;
 
@@ -9,18 +10,13 @@ const NUM_CHUNKS = 5;
 interface SearchResult {
   text: string;
   dense_rank: number;
-  score: number;
-  page_number: number;
+  distance: number;
+  page: number;
   document_id: string;
-  message_id?: string;
+  message_id: string;
+  data_id: string;
+  geography: string;
 }
-
-// interface Citation {
-//     document_id: string;
-//     page_number: number;
-//     score: number;
-//     text: string;
-// }
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -54,19 +50,27 @@ async function getEmbedding(query: string): Promise<number[]> {
 }
 
 
-function makeCitations(searchResults: SearchResult[]) {
+function makeCitations(searchResults: SearchResult[]): BackendCitation[] {
   return searchResults.map(element => ({
+    id: element.data_id,
     document_id: element.document_id,
-    page_number: element.page_number,
-    score: element.score,
-    text: element.text
+    page_number: element.page, 
+    score: element.distance,
+    text: element.text,
+    message_id: element.message_id
   }));
 };
 
 
 function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
+  // <document_id, name>
+  const docIdToName = new Map<string, string>();
+
+  // <document_id, SearchResult[]>
   const processMap = new Map<string, SearchResult[]>();
+
   for (const result of searchResults) {
+    docIdToName.set(result.document_id, result.geography);
     if (processMap.has(result.document_id)) {
       const prevResult = processMap.get(result.document_id)!;
       processMap.set(result.document_id, [...prevResult, result]);
@@ -76,7 +80,7 @@ function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
   };
 
   const subProcesses = [];
-  for (const [_, result] of processMap.entries()) {
+  for (const [docId, result] of processMap.entries()) {
     subProcesses.push({
       id: uuidv4(),
       messageId: message_id,
@@ -84,7 +88,7 @@ function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
       source: MessageSubprocessSource.PLACEHOLDER, 
       metadata_map: {
         sub_question: {
-          question: '',
+          question: docIdToName.get(docId),
           citations: makeCitations(result)
         }
       }
@@ -195,8 +199,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.write(`data: ${JSON.stringify(data)}\n\n`);
     res.end();
 
-    // POST assistant message
-    fetch(messageUrl, {
+    // POST assistant message.
+    await fetch(messageUrl, {
       method: 'POST',
       headers: {
         ...headers,
@@ -210,6 +214,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: assistant_message_id
       })
     });
+
+    // POST citations
+    const dataMessageUrl = `${process.env.SUPABASE_URL!}/rest/v1/datamessage`;
+    for (const subProcess of subProcesses) {
+      const citations = subProcess.metadata_map.sub_question.citations;
+      for (const citation of citations) {
+        fetch(dataMessageUrl, {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data_id: citation.id,
+            message_id: subProcess.messageId,
+            conversation_id: conversation_id,
+            score: citation.score
+          })
+        });
+      };
+    };
 
   } catch (error) {
     console.error('Error in response stream:', error);

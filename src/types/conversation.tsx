@@ -20,12 +20,15 @@ export interface hasId {
 }
 
 export interface Citation {
+  dataId?: string;
   documentId: string;
   snippet: string;
   pageNumber: number;
   ticker: string;
   displayDate: string;
   color: DocumentColorEnum;
+  score: number;
+  messageId: string;
 }
 
 export interface Conversation extends hasId {
@@ -64,9 +67,10 @@ export interface SubQuestion {
   citations?: BackendCitation[];
 }
 
-export interface BackendCitation {
+export interface BackendCitation extends hasId {
   document_id: string;
   page_number: number;
   score: number;
   text: string;
+  message_id: string;
 }

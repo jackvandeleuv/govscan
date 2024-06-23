@@ -118,56 +118,57 @@ const SubProcessDisplay: React.FC<SubProcessDisplayProps> = ({
                   className="text-gray-60"
                 >
                   <div>
-                    {subQuestions.map(({subQuestion, subQuestionIndex, subProcessIndex}) => {
-                      const hasCitations = !!subQuestion.citations;
-                      return (
-                        <div
-                          key={`${messageId}-${subProcessIndex}-${subQuestionIndex}`}
-                        >
-                          <div className="flex w-11/12 py-2 flex-col rounded border">
-                            <div className="rounded-t border-b bg-gray-00 p-2 font-bold text-gray-90">
-                              {subQuestion.question}
-                            </div>
-                          
-                            {hasCitations && (
-                              <div className=" mr-2 py-3 px-1 flex w-full overflow-x-scroll pl-2 ">
-                                {subQuestion.citations?.map(
-                                  (citation, citationIndex) => {
-                                    // get snippet and dispaly date from documentId
-                                    const citationDocument = documents.find(
-                                      (doc) => doc.id === citation.document_id
-                                    );
-                                    if (!citationDocument) {
-                                      return;
-                                    }
-                                    const yearDisplay =
-                                      citationDocument.quarter
-                                        ? `${citationDocument.year} Q${citationDocument.quarter}`
-                                        : `${citationDocument.year}`;
-                                    return (
-                                      <CitationDisplay
-                                        key={`${messageId}-${subProcessIndex}-${subQuestionIndex}-${citationIndex}`}
-                                        citation={
-                                          {
-                                            documentId: citation.document_id,
-                                            snippet: citation.text,
-                                            pageNumber: citation.page_number,
-                                            ticker: citationDocument?.docType,
-                                            displayDate: yearDisplay,
-                                            color: citationDocument.color,
-                                          } as Citation
-                                        }
-                                        setCollapsed={setCollapsed}
-                                      />
-                                    );
-                                  }
-                                )}
+                    {subQuestions.sort((a, b) => a.subQuestionIndex - b.subQuestionIndex)
+                      .map(({subQuestion, subQuestionIndex, subProcessIndex}) => {
+                        const hasCitations = !!subQuestion.citations;
+                        return (
+                          <div
+                            key={`${messageId}-${subProcessIndex}-${subQuestionIndex}`}
+                          >
+                            <div className="flex w-11/12 py-2 flex-col rounded border">
+                              <div className="rounded-t border-b bg-gray-00 p-2 font-bold text-gray-90">
+                                {subQuestion.question}
                               </div>
-                            )}
+                            
+                              {hasCitations && (
+                                <div className=" mr-2 py-3 px-1 flex w-full overflow-x-scroll pl-2 ">
+                                  {subQuestion.citations?.sort((a, b) => a.score - b.score).map(
+                                    (citation, citationIndex) => {
+                                      // get snippet and dispaly date from documentId
+                                      const citationDocument = documents.find(
+                                        (doc) => doc.id === citation.document_id
+                                      );
+                                      if (!citationDocument) {
+                                        return;
+                                      }
+                                      const yearDisplay =
+                                        citationDocument.quarter
+                                          ? `${citationDocument.year} Q${citationDocument.quarter}`
+                                          : `${citationDocument.year}`;
+                                      return (
+                                        <CitationDisplay
+                                          key={`${messageId}-${subProcessIndex}-${subQuestionIndex}-${citationIndex}`}
+                                          citation={
+                                            {
+                                              documentId: citation.document_id,
+                                              snippet: citation.text,
+                                              pageNumber: citation.page_number,
+                                              ticker: citationDocument?.docType,
+                                              displayDate: yearDisplay,
+                                              color: citationDocument.color,
+                                            } as Citation
+                                          }
+                                          setCollapsed={setCollapsed}
+                                        />
+                                      );
+                                    }
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 </div>
               )

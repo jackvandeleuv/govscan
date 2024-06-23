@@ -264,7 +264,7 @@ export default function Conversation() {
             onClick={() => {
               router
                 .push(`/`)
-                .catch(() => console.log("error navigating to conversation"));
+                .catch(() => console.error("error navigating to conversation"));
             }}
             className="m-4 rounded border bg-llama-indigo px-8 py-2 font-bold text-white hover:bg-[#3B3775]"
           >
