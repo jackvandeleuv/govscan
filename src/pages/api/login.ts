@@ -22,7 +22,7 @@ export default async function handler(
   }
 
   const { email, password } = req.body as AuthString;
-
+  
   if (!email || !password) {
     res.status(400).json({ message: 'Email and password are required' });
     return;
@@ -39,6 +39,7 @@ export default async function handler(
   }
 
   const token = data.session?.access_token;
+  data.session?.refresh_token
 
   if (token) {
     res.status(200).json({ message: 'Logged in successfully', token });
