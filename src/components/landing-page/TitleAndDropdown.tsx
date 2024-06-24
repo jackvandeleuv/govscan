@@ -10,7 +10,7 @@ import type { SelectOption } from "~/types/selection";
 import { DocumentSelectCombobox } from "~/components/landing-page/SelectDocType";
 import Select from "react-select";
 import {
-  MAX_NUMBER_OF_SELECTED_DOCUMENTS,
+  MAX_SELECTED_DOCS,
   useDocumentSelector,
 } from "~/hooks/useDocumentSelector";
 import { backendClient } from "~/api/backend";
@@ -93,6 +93,8 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
     shouldFocusCompanySelect,
     setShouldFocusCompanySelect,
     sortedSelectedDocuments,
+    handleAddAll,
+    handleRemoveAll
   } = useDocumentSelector();
 
   const [selectableGeographies, setSelectableGeographies] = useState<SelectOption[]>();
@@ -119,7 +121,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
           setIsLoggedIn={setIsLoggedIn}
         />
       </div>
-      <div className="mt-28 flex flex-col items-center">
+      <div className="mt-12 flex flex-col items-center">
         <div className="w-4/5 text-center text-4xl">
           Search government documents with 
           <span className="font-bold"> GovScan</span>
@@ -217,12 +219,18 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
                 <span className="font-bold">Shift + Enter </span>to add to list{" "}
               </div> */}
 
-              {/* <button
+              <button
                 className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
-                onClick={handleAddDocument}
+                onClick={handleAddAll}
               >
-                Add All
-              </button> */}
+                Add Max
+              </button>
+              <button
+                className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+                onClick={handleRemoveAll}
+              >
+                Remove All
+              </button>
             </div>
           </div>
 
@@ -264,26 +272,23 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
 
           <div className="h-1/8 mt-2 flex w-full items-center justify-center rounded-lg bg-gray-00">
             <div className="flex flex-wrap items-center justify-center">
-              {isDocumentSelectionEnabled && (
-                <>
-                  <div className="w-48 font-nunito md:ml-8 ">
-                    Add up to{" "}
-                    <span className="font-bold">
-                      {" "}
-                      {MAX_NUMBER_OF_SELECTED_DOCUMENTS -
-                        selectedDocuments.length}
-                    </span>{" "}
-                    {isStartConversationButtonEnabled ? (
-                      <>more docs</>
-                    ) : (
-                      <>docs</>
-                    )}
-                  </div>
-                  <div className="ml-1 font-nunito ">
-                    {isStartConversationButtonEnabled ? <>or</> : <>to</>}{" "}
-                  </div>
-                </>
-              )}
+              <>
+                <div className="w-48 font-nunito md:ml-8 ">
+                  Added{" "}
+                  <span className="font-bold">
+                    {" "}
+                    {selectedDocuments.length}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-bold">
+                    {" "}
+                    {MAX_SELECTED_DOCS}
+                  </span>{" "}docs
+                </div>
+                <div className="ml-1 font-nunito ">
+                  {isStartConversationButtonEnabled ? <>or</> : <>to</>}{" "}
+                </div>
+              </>
               <div className="md:ml-12">
                 <button
                   disabled={!isStartConversationButtonEnabled}

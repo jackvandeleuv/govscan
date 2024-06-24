@@ -3,7 +3,7 @@ import React from "react";
 import type { NextPage } from "next";
 import { TitleAndDropdown } from "~/components/landing-page/TitleAndDropdown";
 import { useState, useEffect } from "react";
-import Login from './login';
+import SignIn from './signin';
 import { getToken } from "./supabase/manageTokens";
 import supabase from "./supabase/client";
 
@@ -79,7 +79,7 @@ const LandingPage: NextPage = () => {
         />
       }
       {isLoggedIn === false && 
-        <Login 
+        <SignIn 
           setAuthString={setAuthString}
         />
       }

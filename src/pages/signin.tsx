@@ -6,11 +6,11 @@ interface AuthString {
     password: string;
 }
 
-interface LoginProps {
+interface SignInProps {
     setAuthString: (authString: AuthString) => void;
 }
 
-function Login({ setAuthString }: LoginProps) {
+function SignIn({ setAuthString }: SignInProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
@@ -45,16 +45,16 @@ function Login({ setAuthString }: LoginProps) {
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" />
         </div>
         <div className="flex items-center justify-center">
-          <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Login</button>
+          <button type="submit" className="bg-llama-indigo hover:hover:bg-[#3B3775] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign In</button>
         </div>
       </form>
       <div className="mt-4 text-center">
         <p className="text-gray-700 text-sm">{"Don't have a password?"}
-          <button onClick={handleSignupRedirect} className="text-blue-500 hover:text-blue-700 font-bold">Create an account.</button>
+          <button onClick={handleSignupRedirect} className="text-llama-indigo hover:text-[#3B3775] font-bold">Create an account.</button>
         </p>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default SignIn;

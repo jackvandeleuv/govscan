@@ -33,6 +33,8 @@ interface FetchConversationJSON {
   message: string;
 };
 
+const MAX_USER_MESSAGE_TOKENS = 500;
+
 export default function Conversation() {
   const router = useRouter();
   const { id } = router.query;
@@ -47,7 +49,7 @@ export default function Conversation() {
 
   const { isMobile } = useIsMobile();
 
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [collapsed, setCollapsed] = useState<boolean>(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isMessagePending, setIsMessagePending] = useState(false);
   const [userMessage, setUserMessage] = useState("");
@@ -183,17 +185,26 @@ export default function Conversation() {
   const submit = async () => {
     if (!userMessage || !conversationId) return;
 
+    if (userMessage.split(' ').length > MAX_USER_MESSAGE_TOKENS) {
+      console.error('User message exceeds max size.');
+      return;
+    }
+
     const token = await getToken();
     if (!token) {
       console.error('Could not get access token.')
       return;
     };
 
+    console.log('submitted user message:')
+    console.log(userMessage)
+
     setIsMessagePending(true);
     userSendMessage(userMessage);
     setUserMessage("");
 
-    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&token=${token}`;
+    const num_docs = selectedDocuments.length;
+    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&token=${token}`;
 
     const events = new EventSource(url);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument

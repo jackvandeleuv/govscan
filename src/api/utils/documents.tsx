@@ -1,4 +1,4 @@
-import { MAX_NUMBER_OF_SELECTED_DOCUMENTS } from "~/hooks/useDocumentSelector";
+import { MAX_SELECTED_DOCS } from "~/hooks/useDocumentSelector";
 import { BackendDocument, BackendDocumentType } from "~/types/backend/document";
 import { Document, DocumentType } from "~/types/document";
 import { documentColors } from "~/utils/colors";

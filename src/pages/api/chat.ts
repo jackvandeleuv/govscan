@@ -4,9 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import { MessageSubprocessSource, BackendCitation } from '~/types/conversation';
 import { DocumentColorEnum } from "~/utils/colors";
 
-const NUM_CHUNKS = 5;
-// const CHAT_MODEL = "gpt-4o";
-const CHAT_MODEL = "gpt-3.5-turbo";
+
+const CHAT_MODEL = "gpt-4o";
+// const CHAT_MODEL = "gpt-3.5-turbo";
 
 
 interface SearchResult {
@@ -18,6 +18,23 @@ interface SearchResult {
   message_id: string;
   data_id: string;
   geography: string;
+  year: string;
+  doc_type: string;
+}
+
+interface PromptResult {
+  text: string;
+  page: number;
+  geography: string;
+  year: string;
+  doc_type: string;
+}
+
+interface RequestBody {
+  conversation_id: string;
+  message: string;
+  num_docs: number;
+  token: string;
 }
 
 const openai = new OpenAI({
@@ -107,7 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { conversation_id, message: userMessage, token } = req.query;
+  const { conversation_id, message: userMessage, num_docs, token } = req.query;
 
   if (!conversation_id || !userMessage) {
     res.status(400).json({ message: 'Missing conversation_id / message / token' });
@@ -142,9 +159,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const searchUrl = `${process.env.SUPABASE_URL!}/rest/v1/rpc/semantic_search`;
 
+  if (typeof num_docs !== "string") {
+    res.status(400).json({ message: 'num_docs is incorrectly formatted.' });
+    return;
+  }
+  // Choose number of citations based on number of documents.
+  const num_citations = Math.floor(11 - (Number.parseInt(num_docs) * 0.8));
+
   const body = JSON.stringify({
     conv_id: conversation_id,
-    num_chunks: NUM_CHUNKS,
+    num_chunks: num_citations,
     query_vector: JSON.stringify(await queryVector),
   });
 
@@ -161,7 +185,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  const full_prompt = `Search Results: ${JSON.stringify(searchResults)}\n\nMessage: ${userMessage}`;
+  const promptResults: PromptResult[] = searchResults.map((sr): PromptResult => ({
+    text: sr.text,
+    page: sr.page,
+    geography: sr.geography,
+    year: sr.year,
+    doc_type: sr.doc_type,
+  }));
+
+  const full_prompt = `Search Results: ${JSON.stringify(promptResults)}\n\nMessage: ${userMessage}`;
   const assistant_message_id = uuidv4();
 
   searchResults.forEach(element => {
@@ -185,7 +217,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stream = await openai.chat.completions.create({
       model: CHAT_MODEL,
       messages: [{ role: "user", content: full_prompt }],
-      max_tokens: 1024,
       stream: true
     });
 
