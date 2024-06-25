@@ -37,6 +37,12 @@ interface RequestBody {
   token: string;
 }
 
+interface EmbedResponse {
+  data: Array<{
+    embedding: Array<number>; 
+  }>;
+}
+
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -44,7 +50,7 @@ const openai = new OpenAI({
 
 async function getEmbedding(query: string): Promise<number[]> {
   const headers = {
-    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+    'Authorization': `Bearer ${process.env.OPENAI_API_KEY!}`,
     'Content-Type': 'application/json'
   };
 
@@ -64,8 +70,8 @@ async function getEmbedding(query: string): Promise<number[]> {
     throw new Error(`HTTP error! status: ${embedResponse.status}`);
   }
 
-  const responseJson = await embedResponse.json();
-  return responseJson.data[0].embedding;
+  const responseJson: EmbedResponse = await embedResponse.json() as EmbedResponse;
+  return responseJson.data[0]!.embedding;
 }
 
 
@@ -78,7 +84,7 @@ function makeCitations(searchResults: SearchResult[]): BackendCitation[] {
     text: element.text,
     message_id: element.message_id
   }));
-};
+}
 
 
 function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
@@ -96,7 +102,7 @@ function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
     } else {
       processMap.set(result.document_id, [result]);
     }
-  };
+  }
 
   const subProcesses = [];
   for (const [docId, result] of processMap.entries()) {
@@ -112,10 +118,10 @@ function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
         }
       }
     })
-  };
+  }
 
   return subProcesses;
-};
+}
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -124,12 +130,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { conversation_id, message: userMessage, num_docs, token } = req.query;
+  const { conversation_id, message: userMessage, num_docs, token } = req.query as {
+    conversation_id: string;
+    message: string;
+    num_docs: string;
+    token: string;
+  };
 
-  if (!conversation_id || !userMessage) {
+  if (!conversation_id || !userMessage || !token) {
     res.status(400).json({ message: 'Missing conversation_id / message / token' });
     return;
-  };
+  }
 
   const messageUrl = `${process.env.SUPABASE_URL!}/rest/v1/message`;
   const user_created_at = new Date().toISOString();
@@ -141,7 +152,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   // POST user message
-  fetch(messageUrl, {
+  void fetch(messageUrl, {
     method: 'POST',
     headers: {
       ...headers,
@@ -155,7 +166,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   });
 
-  const queryVector = getEmbedding(userMessage as string);
+  const queryVector = getEmbedding(userMessage);
 
   const searchUrl = `${process.env.SUPABASE_URL!}/rest/v1/rpc/semantic_search`;
 
@@ -253,7 +264,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const subProcess of subProcesses) {
       const citations = subProcess.metadata_map.sub_question.citations;
       for (const citation of citations) {
-        fetch(dataMessageUrl, {
+        void fetch(dataMessageUrl, {
           method: 'POST',
           headers: {
             ...headers,
@@ -266,8 +277,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             score: citation.score
           })
         });
-      };
-    };
+      }
+    }
 
   } catch (error) {
     console.error('Error in response stream:', error);

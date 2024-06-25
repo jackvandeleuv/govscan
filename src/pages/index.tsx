@@ -4,8 +4,8 @@ import type { NextPage } from "next";
 import { TitleAndDropdown } from "~/components/landing-page/TitleAndDropdown";
 import { useState, useEffect } from "react";
 import SignIn from './signin';
-import { getToken } from "./supabase/manageTokens";
-import supabase from "./supabase/client";
+import { getToken } from "../supabase/manageTokens";
+import supabase from "../supabase/client";
 
 export interface AuthString {
   email: string;
@@ -32,9 +32,9 @@ const LandingPage: NextPage = () => {
       if (hasMounted) {
         const token = await getToken();
         setIsLoggedIn(token !== null)
-      };
+      }
     };
-    checkToken();
+    void checkToken();
   }, [hasMounted]);
 
   

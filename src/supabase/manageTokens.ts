@@ -32,8 +32,6 @@ export const getToken = async (): Promise<string | null> => {
         const newToken = session?.access_token;
     
         if (newToken) {
-            console.log('Refreshed token!')
-
             return newToken
         } else {
             console.error('New session token not available after refresh');

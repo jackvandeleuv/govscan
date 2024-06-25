@@ -1,11 +1,7 @@
 import React, { FormEvent, useState } from 'react';
-import client from '../pages/supabase/client';
+import client from '../supabase/client';
 import { useRouter } from 'next/router';
 
-// interface AuthString {
-//   username: string;
-//   password: string;
-// }
 
 function SignUp() {
   const router = useRouter();
@@ -54,7 +50,7 @@ function SignUp() {
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-lg shadow-md w-80">
       <h1 className="text-2xl font-bold mb-6 text-center">GovScan Create Account</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col">
+      <form onSubmit={void handleSubmit} className="flex flex-col">
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Username:</label>
           <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />

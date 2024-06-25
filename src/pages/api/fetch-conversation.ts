@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Document } from '~/types/document';
-import type { Message, BackendCitation } from "~/types/conversation";
+import type { Message, BackendCitation, MessageSubProcess } from "~/types/conversation";
 import { MessageSubprocessSource } from "~/types/conversation";
+import { v4 as uuidv4 } from "uuid";
 
 type ResponseData = {
   messages?: Message[];
@@ -14,15 +15,20 @@ interface RequestBody {
   token: string;
 }
 
+type ErrorResponse = {
+  message: string;
+  [key: string]: any;
+};
+
 
 function makeSubprocesses(
   message: Message, 
   citationMap: Map<string, BackendCitation[]>,
   documents: Document[]
-) {
+): MessageSubProcess[] | null {
   const message_id = message.id;
 
-  if (!citationMap.has(message_id)) return;
+  if (!citationMap.has(message_id)) return null;
 
   const citations = citationMap.get(message_id)!;
 
@@ -34,19 +40,20 @@ function makeSubprocesses(
     } else {
       citationToDocument.set(key, [citation]);
     }
-  };
+  }
 
-  const subProcesses = [];
+  const subProcesses: MessageSubProcess[] = [];
   for (const [docId, citationArr] of citationToDocument.entries()) {
     const docName = documents.filter((d) => d.id === docId)[0]?.geography;
     subProcesses.push(
       {
+        id: uuidv4(),
         messageId: message_id,
         content: '',
         source: MessageSubprocessSource.PLACEHOLDER,
         metadata_map: {
           sub_question: {
-            question: docName,
+            question: docName!,
             citations: citationArr
           }
         }
@@ -55,7 +62,7 @@ function makeSubprocesses(
   }
 
   return subProcesses;
-};
+}
 
 
 export default async function handler(
@@ -101,32 +108,32 @@ export default async function handler(
   
   const messageResponse = await messageRequest;
   if (!messageResponse.ok) {
-    const error = await messageResponse.json();
+    const error: ErrorResponse = await messageResponse.json() as ErrorResponse;
     console.error('Error fetching message:', error);
     return;
   }
-  const messages = await messageResponse.json();
+  const messages: Message[] = await messageResponse.json() as Message[];
 
   const citationResponse = await citationsRequest;
   if (!citationResponse.ok) {
-    const error = await citationResponse.json();
+    const error: ErrorResponse = await citationResponse.json() as ErrorResponse;
     console.error('Error fetching citations:', error);
     return;
   }
-  const citations = await citationResponse.json() as BackendCitation[];
+  const citations: BackendCitation[] = await citationResponse.json() as BackendCitation[];
 
   const documentResponse = await documentRequest;
   if (!documentResponse.ok) {
-    const error = await documentResponse.json();
+    const error: ErrorResponse = await documentResponse.json() as ErrorResponse;
     console.error('Error fetching document:', error);
     return;
   }
-  const documents = await documentResponse.json();
+  const documents: Document[] = await documentResponse.json() as Document[];
 
   if (citations === null) {
     res.status(200).json({ documents, messages, message: 'Success' });
     return;
-  };
+  }
   
   const citationMap = new Map<string, BackendCitation[]>();
   for (const citation of citations) {
@@ -136,15 +143,17 @@ export default async function handler(
     } else {
       citationMap.set(key, [citation]);
     }
-  };
+  }
   
   const updatedMessages: Message[] = [];
   for (const message of messages) {
+    const subProcesses = makeSubprocesses(message, citationMap, documents);
+    if (!subProcesses) continue;
     updatedMessages.push({
       ...message,
-      sub_processes: makeSubprocesses(message, citationMap, documents)
+      sub_processes: subProcesses
     });
-  };
+  }
 
   res.status(200).json({ documents, messages: updatedMessages, message: 'Success' });
 

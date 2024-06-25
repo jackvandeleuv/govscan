@@ -14,7 +14,7 @@ import {
   getAvailableYears,
 } from "~/utils/landing-page-selection";
 import useLocalStorage from "./utils/useLocalStorage";
-import { isTokenExpired, getToken } from "~/pages/supabase/manageTokens";
+import { getToken } from "../supabase/manageTokens";
 
 interface SupabaseDocument {
   doc_type: string;
@@ -54,7 +54,7 @@ export const useDocumentSelector = () => {
       if (!token) {
         console.error('Could not get access token.')
         return;
-      };
+      }
 
       const endpoint = '/api/document';
 
@@ -71,7 +71,7 @@ export const useDocumentSelector = () => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
 
-        const response_json: ResponseJSON = await res.json();
+        const response_json: ResponseJSON = await res.json() as ResponseJSON;
 
         const docs = response_json.documents.map((x: SupabaseDocument): Document => ({
           docType: x.doc_type,
@@ -138,7 +138,7 @@ export const useDocumentSelector = () => {
     for (const doc of availableDocuments) {
       if (updatedSelection.size >= MAX_SELECTED_DOCS) break;
       updatedSelection.add(doc);
-    };
+    }
     
     setSelectedDocuments([...updatedSelection]);
     setSelectedGeography(null);

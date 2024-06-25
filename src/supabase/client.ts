@@ -17,7 +17,9 @@ const customFetch = async (url: string, options: RequestInit) => {
 
 
 const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 (supabase as any).fetch = customFetch; 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 export const setAccessToken = (token: string) => {
   accessToken = token;
