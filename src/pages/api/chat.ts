@@ -2,11 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAI } from 'openai'; 
 import { v4 as uuidv4 } from "uuid";
 import { MessageSubprocessSource, BackendCitation } from '~/types/conversation';
-import { DocumentColorEnum } from "~/utils/colors";
-
-
-const CHAT_MODEL = "gpt-4o";
-// const CHAT_MODEL = "gpt-3.5-turbo";
+import { MESSAGE_STATUS, ROLE } from "~/types/conversation";
 
 
 interface SearchResult {
@@ -43,9 +39,76 @@ interface EmbedResponse {
   }>;
 }
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+interface RequestBody {
+  token: string;
+}
+
+type AnthropicAPIResponse = {
+  content: Array<{
+      text: string;
+      type: string;
+  }>;
+  id: string;
+  model: string;
+  role: string;
+  stop_reason: string | null;
+  stop_sequence: null;  
+  type: string;
+  usage: {
+      input_tokens: number;
+      output_tokens: number;
+  };
+};
+
+
+async function anthropicMessage(fullPrompt: string): Promise<string | null> {
+  const ANTHROPIC_CHAT_MODEL = "claude-3-haiku-20240307";
+  // const ANTHROPIC_CHAT_MODEL = "claude-3-5-sonnet-20240620";
+
+  const chatUrl = 'https://api.anthropic.com/v1/messages';
+  const chatHeaders = {
+      'x-api-key': process.env.ANTHROPIC_API_KEY!,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json'
+  };
+  const chatBody = JSON.stringify({
+      model: ANTHROPIC_CHAT_MODEL,
+      max_tokens: 4096,
+      messages: [
+          {role: "user", content: fullPrompt}
+      ]
+  });
+
+  const response = await fetch(chatUrl, {
+    method: 'POST',
+    headers: chatHeaders,
+    body: chatBody
+  });
+
+  if (!response.ok) {
+      console.error('HTTP Error:', response.status, await response.text());
+      return null;
+  }
+
+  const chatResponse: AnthropicAPIResponse = await response.json() as AnthropicAPIResponse;
+  return chatResponse.content[0]!.text;
+}
+
+
+async function openAiMessage(fullPrompt: string): Promise<string | null> {
+  const OPENAI_CHAT_MODEL = "gpt-4o";
+
+  const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  const completion = await openai.chat.completions.create({
+    model: OPENAI_CHAT_MODEL,
+    messages: [{ role: "user", content: fullPrompt }]
+  });
+
+  return completion.choices[0]!.message.content!;
+}
 
 
 async function getEmbedding(query: string): Promise<number[]> {
@@ -125,17 +188,15 @@ function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    res.status(405).json({ message: 'Method not allowed' });
-    return;
-  }
-
-  const { conversation_id, message: userMessage, num_docs, token } = req.query as {
+  const { conversation_id, message: userMessage, num_docs, assistant_message_id } = req.query as {
     conversation_id: string;
     message: string;
     num_docs: string;
-    token: string;
+    assistant_message_id: string;
   };
+
+  const requestBody: RequestBody = req.body as RequestBody;
+  const token = requestBody.token;
 
   if (!conversation_id || !userMessage || !token) {
     res.status(400).json({ message: 'Missing conversation_id / message / token' });
@@ -159,7 +220,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      role: 'user', 
+      role: ROLE.USER, 
       content: userMessage,
       conversation_id: conversation_id,
       created_at: user_created_at
@@ -174,6 +235,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).json({ message: 'num_docs is incorrectly formatted.' });
     return;
   }
+
   // Choose number of citations based on number of documents.
   const num_citations = Math.floor(11 - (Number.parseInt(num_docs) * 0.8));
 
@@ -191,11 +253,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const searchResults = await response.json() as SearchResult[];
 
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
   const promptResults: PromptResult[] = searchResults.map((sr): PromptResult => ({
     text: sr.text,
     page: sr.page,
@@ -205,7 +262,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }));
 
   const full_prompt = `Search Results: ${JSON.stringify(promptResults)}\n\nMessage: ${userMessage}`;
-  const assistant_message_id = uuidv4();
 
   searchResults.forEach(element => {
     element.message_id = assistant_message_id;
@@ -214,45 +270,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const subProcesses = makeSubprocesses(searchResults, assistant_message_id);
 
   const assistant_created_at = new Date().toISOString();
-  const data = {
+
+  const assistantMessage = {
     id: assistant_message_id,
     content: '',
-    role: "assistant",
-    status: "PENDING",
+    role: ROLE.ASSISTANT,
+    status: MESSAGE_STATUS.SUCCESS,
     conversationId: conversation_id,
     created_at: assistant_created_at,
     sub_processes: subProcesses
   };
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: CHAT_MODEL,
-      messages: [{ role: "user", content: full_prompt }],
-      stream: true
-    });
-
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || "";
-      if (content) {
-          data.content = data.content + content;
-          res.write(`data: ${JSON.stringify(data)}\n\n`);
-      }
-    }
-
-    data.status = 'SUCCESS';
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-    res.end();
+    assistantMessage.content = await anthropicMessage(full_prompt) || '';
+    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
 
     // POST assistant message.
-    await fetch(messageUrl, {
+    void fetch(messageUrl, {
       method: 'POST',
       headers: {
         ...headers,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ 
-        role: 'assistant', 
-        content: data.content,
+        role: ROLE.ASSISTANT, 
+        content: assistantMessage.content,
         conversation_id: conversation_id,
         created_at: assistant_created_at,
         id: assistant_message_id
@@ -282,9 +324,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (error) {
     console.error('Error in response stream:', error);
-    data.status = 'ERROR';
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
     res.status(500).json({ message: 'Internal Server Error' });
-    res.end();
   }
 }

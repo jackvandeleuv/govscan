@@ -18,6 +18,7 @@ import { useModal } from "~/hooks/utils/useModal";
 import { useIntercom } from "react-use-intercom";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import { getToken } from "../../supabase/manageTokens";
+import { v4 as uuidv4 } from "uuid";
 
 interface CitationChunkMap {
   [key: string]: CitationChunks[];
@@ -27,6 +28,11 @@ interface FetchConversationJSON {
   messages?: Message[];
   documents?: Document[];
   message: string;
+}
+
+interface ChatResponse {
+  message: string;
+  data: Message;
 }
 
 const MAX_USER_MESSAGE_TOKENS = 500;
@@ -47,7 +53,7 @@ export default function Conversation() {
 
   const [collapsed, setCollapsed] = useState<boolean>(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [isMessagePending, setIsMessagePending] = useState(false);
+  const [isMessagePending, setIsMessagePending] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState("");
   const [selectedDocuments, setSelectedDocuments] = useState<Document[]>([]);
   const { messages, userSendMessage, systemSendMessage, setMessages } =
@@ -61,81 +67,7 @@ export default function Conversation() {
       setConversationId(id);
     }
   }, [id]);
-
-
-  const updateCitation = async (
-    convoId: string, 
-    messageId: string,
-    userQuery: string
-  ) => {
-    const result = await backendClient.fetchConversation(convoId);
-    
-    // Convert between document metadata and id.
-    const infoToIdMap = new Map<string, string>();
-    for (const doc of result.documents) {
-      const key = `${doc.geography}-${doc.fullName}`;
-      infoToIdMap.set(key, doc.id);
-    }
-
-    const chunks = await backendClient.fetchChunks(
-      convoId,
-      userQuery
-    );
-
-    const groupedChunks: CitationChunkMap = {};
-    for (const chunk of chunks) {
-      const key = `${chunk.company_ticker}-${chunk.doc_type}`
-      if (key in groupedChunks) {
-        groupedChunks[key]!.push(chunk);
-      } else {
-        groupedChunks[key] = [chunk];
-      }
-    }
-
-    const newMessages: Message[] = [];
-
-    Object.keys(groupedChunks).forEach(key => {
-      const chunkGroup = groupedChunks[key]!;
-      
-      const citations = chunkGroup.map(chunk => {
-        const doc_id = infoToIdMap.get(key);
-        if (!doc_id) return null;
-
-        return {
-          document_id: doc_id,
-          page_number: parseInt(chunk.page_label, 10),
-          score: 0,
-          text: chunk.text
-        };
-      }).filter(citation => citation !== null) as BackendCitation[];
-
-      newMessages.push({
-        id: messageId,
-        content: '',
-        role: ROLE.ASSISTANT,
-        status: MESSAGE_STATUS.SUCCESS,
-        conversationId: convoId,
-        sub_processes: [{
-          id: '',
-          messageId: messageId,
-          content: 'THIS IS WHERE CONTENT GOES',
-          source: MessageSubprocessSource.PLACEHOLDER,
-          metadata_map: {
-            sub_question: {
-              question: key.replace('-', ' | '),
-              answer: "",
-              citations: citations
-            }
-          }
-        }],
-        created_at: new Date("2021-06-01T12:00:00Z")
-      });
-
-    });
-   
-    setMessages(newMessages);
-  };
-
+  
   useEffect(() => {
     const fetchConversation = async (id: string) => {
       const endpoint = '/api/fetch-conversation';
@@ -192,31 +124,28 @@ export default function Conversation() {
       return;
     }
 
+    const assistant_message_id = uuidv4();
+
     setIsMessagePending(true);
     userSendMessage(userMessage);
     setUserMessage("");
 
     const num_docs = selectedDocuments.length;
-    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&token=${token}`;
+    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}`;
 
-    const events = new EventSource(url);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
-    events.onmessage = (event: MessageEvent) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
-      const parsedData: Message = JSON.parse(event.data);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+    });
 
-      systemSendMessage(parsedData);
+    const parsedData: ChatResponse = await res.json() as ChatResponse;
+    const message = parsedData.data;
 
-      if (
-        parsedData.status === MESSAGE_STATUS.SUCCESS ||
-        parsedData.status === MESSAGE_STATUS.ERROR
-      ) {
-        events.close();
-        setIsMessagePending(false);
-
-        // updateCitation(conversationId, parsedData.id, userMessage);
-      }
-    };
+    systemSendMessage(message);
+    setIsMessagePending(false);
   };
 
   const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -359,6 +288,7 @@ export default function Conversation() {
                 setUserMessage={setSuggestedMessage}
                 collapsed={collapsed}
                 setCollapsed={setCollapsed}
+                isMessagePending={isMessagePending}
               />
             </div>
             <div className="relative flex h-[70px] w-[44vw] w-full items-center border-b-2 border-t">
