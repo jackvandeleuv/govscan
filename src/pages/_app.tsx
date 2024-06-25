@@ -5,9 +5,12 @@ import ReactGA from "react-ga4";
 
 import { IntercomProvider } from "react-use-intercom";
 import { GOOGLE_ANALYTICS_ID, INTERCOM_ID } from "~/constants";
-
+import { Analytics } from "@vercel/analytics/react";
 
 ReactGA.initialize(GOOGLE_ANALYTICS_ID);
+
+// Add Vercel Analytics
+<Analytics />
 
 const MyApp: AppType = ({ Component, pageProps }) => {
 
