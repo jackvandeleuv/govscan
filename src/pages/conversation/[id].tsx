@@ -19,6 +19,7 @@ import { useIntercom } from "react-use-intercom";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import { getToken } from "../../supabase/manageTokens";
 import { v4 as uuidv4 } from "uuid";
+import axios from 'axios';
 
 interface CitationChunkMap {
   [key: string]: CitationChunks[];
@@ -132,19 +133,25 @@ export default function Conversation() {
 
     const num_docs = selectedDocuments.length;
     const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}`;
+    
+    try {
+      const response = await axios.post(url, {
+        token
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 20000  
+      });
+  
+      const parsedData: ChatResponse = response.data as ChatResponse;
+      const message = parsedData.data;
+      systemSendMessage(message);
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
+    } catch (error) {
+      console.error('Request failed:', error);
+    }
 
-    const parsedData: ChatResponse = await res.json() as ChatResponse;
-    const message = parsedData.data;
-
-    systemSendMessage(message);
     setIsMessagePending(false);
   };
 

@@ -291,9 +291,9 @@ const AssistantDisplay: React.FC<AssistantDisplayProps> = ({
           <div className="flex ">
             <div className="w-1/5"></div>
             <div className="w-4/5">
-              <p className="relative mb-2 mt-2 pr-3 font-nunito whitespace-pre-wrap font-bold text-gray-90">
+              <div className="relative mb-2 mt-2 pr-3 font-nunito whitespace-pre-wrap font-bold text-gray-90">
                 {<div className="bg-white p-4 rounded-lg shadow">{message.content}</div>}
-              </p>
+              </div>
               <p className="flex items-center justify-start p-1 text-xs text-gray-60">
                 Large language models are not always accurate. Check important information
                 against the contents of relevant documents.
