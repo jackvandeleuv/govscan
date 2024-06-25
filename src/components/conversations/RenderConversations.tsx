@@ -5,13 +5,12 @@ import type { Message, SubQuestion } from "~/types/conversation";
 import { LoadingSpinner } from "~/components/basics/Loading";
 import { PiCaretDownBold } from "react-icons/pi";
 import { HiOutlineChatAlt2 } from "react-icons/hi";
-
 import { usePdfFocus } from "~/context/pdf";
-import { AiFillExclamationCircle, AiOutlineLink } from "react-icons/ai";
+import { AiFillExclamationCircle } from "react-icons/ai";
 import { Document } from "~/types/document";
 import { borderColors } from "~/utils/colors";
 import { formatDisplayDate } from "~/utils/timezone";
-import { setConfig } from "next/config";
+import ChatSkeleton from "./ChatSkeleton";
 
 
 interface CitationDisplayProps {
@@ -249,7 +248,7 @@ interface AssistantDisplayProps {
 const AssistantDisplay: React.FC<AssistantDisplayProps> = ({
   message,
   documents,
-  setCollapsed
+  setCollapsed,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -293,7 +292,7 @@ const AssistantDisplay: React.FC<AssistantDisplayProps> = ({
             <div className="w-1/5"></div>
             <div className="w-4/5">
               <p className="relative mb-2 mt-2 pr-3 font-nunito whitespace-pre-wrap font-bold text-gray-90">
-                {message.content}
+                {<div className="bg-white p-4 rounded-lg shadow">{message.content}</div>}
               </p>
               <p className="flex items-center justify-start p-1 text-xs text-gray-60">
                 Large language models are not always accurate. Check important information
@@ -313,6 +312,7 @@ interface IRenderConversation {
   setUserMessage: (str: string) => void;
   collapsed: boolean;
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  isMessagePending: boolean;
 }
 
 export const RenderConversations: React.FC<IRenderConversation> = ({
@@ -320,8 +320,10 @@ export const RenderConversations: React.FC<IRenderConversation> = ({
   documents,
   setUserMessage,
   collapsed,
-  setCollapsed
+  setCollapsed,
+  isMessagePending
 }) => {
+
   const lastElementRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -370,6 +372,9 @@ export const RenderConversations: React.FC<IRenderConversation> = ({
           );
         }
       })}
+      {messages.length > 0 && isMessagePending && (
+        <ChatSkeleton />
+      )}
       {messages.length === 0 && (
         <div className="flex h-full items-center justify-center ">
           <div className="flex w-full flex-col items-center justify-center">

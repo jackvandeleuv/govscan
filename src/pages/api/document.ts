@@ -9,7 +9,7 @@ type ResponseData = {
 };
 
 interface ResponseBody {
-    token: string;
+  token: string;
 }
 
 export default async function handler(
