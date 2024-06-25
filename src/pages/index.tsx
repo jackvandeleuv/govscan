@@ -20,7 +20,7 @@ const LandingPage: NextPage = () => {
   const [hasMounted, setHasMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [authString, setAuthString] = useState<AuthString | null>(null);
-
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setHasMounted(true);
@@ -58,7 +58,7 @@ const LandingPage: NextPage = () => {
         });
       
         if (error) {
-          console.error('Invalid email or password' );
+          setError(error.message);
           return;
         }
       
@@ -81,6 +81,8 @@ const LandingPage: NextPage = () => {
       {isLoggedIn === false && 
         <SignIn 
           setAuthString={setAuthString}
+          error={error}
+          setError={setError}
         />
       }
     </>

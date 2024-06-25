@@ -372,7 +372,7 @@ export default function Conversation() {
               />
               <button
                 disabled={isMessagePending || userMessage.length === 0}
-                onClick={void submit}
+                onClick={(() => void submit())}
                 className="z-1 absolute right-6 top-1/2 mb-1 -translate-y-1/2 transform rounded text-gray-90 opacity-80 enabled:hover:opacity-100 disabled:opacity-30"
               >
                 <BsArrowUpCircle size={24} />

@@ -8,12 +8,15 @@ interface AuthString {
 
 interface SignInProps {
     setAuthString: (authString: AuthString) => void;
+    error: string;
+    setError: (error: string) => void;
 }
 
-function SignIn({ setAuthString }: SignInProps) {
+function SignIn({ setAuthString, error, setError }: SignInProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,11 +26,12 @@ function SignIn({ setAuthString }: SignInProps) {
     });
   };
 
+
   const handleSignupRedirect = () => {
     router
       .push('/signup')
       .catch(() => {
-        console.error("error navigating to sign up page");
+        console.error("Error navigating to sign up page.");
       });
   };
 
@@ -35,7 +39,7 @@ function SignIn({ setAuthString }: SignInProps) {
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-lg shadow-md w-80">
       <h1 className="text-2xl font-bold mb-6 text-center">GovScan Sign In</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col">
+      <form onSubmit={((e) => void handleSubmit(e))} className="flex flex-col">
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Email:</label>
           <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
@@ -44,6 +48,7 @@ function SignIn({ setAuthString }: SignInProps) {
           <label className="block text-gray-700 text-sm font-bold mb-2">Password:</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" />
         </div>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <div className="flex items-center justify-center">
           <button type="submit" className="bg-llama-indigo hover:hover:bg-[#3B3775] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign In</button>
         </div>
