@@ -17,10 +17,7 @@ import { BsArrowUpCircle } from "react-icons/bs";
 import { useModal } from "~/hooks/utils/useModal";
 import { useIntercom } from "react-use-intercom";
 import useIsMobile from "~/hooks/utils/useIsMobile";
-import { group } from "console";
-import AuthPanel from "~/components/dropdowns/AuthPanel";
-import CollapseButton from "~/components/conversations/CollapseButton";
-import { ResponseJSON } from "~/hooks/useDocumentSelector";
+import { getToken } from "../../supabase/manageTokens";
 
 interface CitationChunkMap {
   [key: string]: CitationChunks[];
@@ -30,7 +27,9 @@ interface FetchConversationJSON {
   messages?: Message[];
   documents?: Document[];
   message: string;
-};
+}
+
+const MAX_USER_MESSAGE_TOKENS = 500;
 
 export default function Conversation() {
   const router = useRouter();
@@ -46,7 +45,7 @@ export default function Conversation() {
 
   const { isMobile } = useIsMobile();
 
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [collapsed, setCollapsed] = useState<boolean>(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isMessagePending, setIsMessagePending] = useState(false);
   const [userMessage, setUserMessage] = useState("");
@@ -140,8 +139,12 @@ export default function Conversation() {
   useEffect(() => {
     const fetchConversation = async (id: string) => {
       const endpoint = '/api/fetch-conversation';
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
+
+      const token = await getToken();
+      if (!token) {
+        console.error('Could not get access token.')
+        return;
+      }
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -155,7 +158,7 @@ export default function Conversation() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const response_json: FetchConversationJSON = await res.json(); 
+      const response_json: FetchConversationJSON = await res.json() as FetchConversationJSON; 
 
       if (response_json.documents) {
         setSelectedDocuments(response_json.documents);
@@ -175,18 +178,26 @@ export default function Conversation() {
 
   
   // Keeping this in this file for now because this will be subject to change
-  const submit = () => {
+  const submit = async () => {
     if (!userMessage || !conversationId) return;
-    
-    const token = localStorage.getItem('authToken');
 
-    if (!token) return;
+    if (userMessage.split(' ').length > MAX_USER_MESSAGE_TOKENS) {
+      console.error('User message exceeds max size.');
+      return;
+    }
+
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    }
 
     setIsMessagePending(true);
     userSendMessage(userMessage);
     setUserMessage("");
 
-    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&token=${token}`;
+    const num_docs = selectedDocuments.length;
+    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&token=${token}`;
 
     const events = new EventSource(url);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
@@ -225,7 +236,7 @@ export default function Conversation() {
       if (event.key === "Enter") {
         event.preventDefault();
         if (!isMessagePending) {
-          submit();
+          void submit();
         }
       }
     };
@@ -253,9 +264,12 @@ export default function Conversation() {
   }
 
 
-  async function handleExport() {
-    const token = localStorage.getItem('authToken');
-    if (!token) return;
+  async function handleExport(): Promise<void> {
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    }
     
     const endpoint = '/api/download-chat';
 
@@ -276,13 +290,12 @@ export default function Conversation() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `chat_${conversationId}.docx`;  
+    a.download = `chat_${conversationId!}.docx`;  
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
-  };
+  }
 
 
   if (isMobile) {
@@ -325,7 +338,7 @@ export default function Conversation() {
                   <BiArrowBack className="mr-1" /> Back to Document Selection
                 </button>
                 <button
-                  onClick={handleExport}
+                  onClick={(() => void handleExport())}
                   className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
                 >
                   <div className="text-xs font-medium">Export</div>
@@ -336,7 +349,6 @@ export default function Conversation() {
                   className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
                 >
                   <div className="text-xs font-medium">Toggle PDF</div>
-                  <FiShare className="ml-1" size={12} />
                 </button>
               </div>
             </div>
@@ -360,7 +372,7 @@ export default function Conversation() {
               />
               <button
                 disabled={isMessagePending || userMessage.length === 0}
-                onClick={submit}
+                onClick={(() => void submit())}
                 className="z-1 absolute right-6 top-1/2 mb-1 -translate-y-1/2 transform rounded text-gray-90 opacity-80 enabled:hover:opacity-100 disabled:opacity-30"
               >
                 <BsArrowUpCircle size={24} />

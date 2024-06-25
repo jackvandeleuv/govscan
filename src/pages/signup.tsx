@@ -1,12 +1,11 @@
 import React, { FormEvent, useState } from 'react';
-import client from '../pages/supabase/client';
+import client from '../supabase/client';
+import { useRouter } from 'next/router';
 
-// interface AuthString {
-//   username: string;
-//   password: string;
-// }
 
 function SignUp() {
+  const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -40,12 +39,20 @@ function SignUp() {
     setSuccessMessage('Success! Check your email for confirmation.')
   };
 
+  const handleSigninRedirect = () => {
+    router
+      .push('/signin')
+      .catch(() => {
+        console.error("error navigating to sign up page");
+      });
+  };
+
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-10 rounded-lg shadow-md w-80">
       <h1 className="text-2xl font-bold mb-6 text-center">GovScan Create Account</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col">
+      <form onSubmit={((e) => void handleSubmit(e))} className="flex flex-col">
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+          <label className="block text-gray-700 text-sm font-bold mb-2">Email:</label>
           <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
         </div>
         <div className="mb-4">
@@ -63,9 +70,16 @@ function SignUp() {
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         {successMessage && <p className="text-green-500 text-sm mb-4">{successMessage}</p>}
         <div className="flex items-center justify-center">
-          <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign Up</button>
+          <button type="submit" className="bg-llama-indigo hover:hover:bg-[#3B3775] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign Up</button>
         </div>
       </form>
+      <div className="mt-4 text-center">
+        <p className="text-gray-700 text-sm">
+          {"Already have an account?"}
+          {" "}
+          <button onClick={handleSigninRedirect} className="text-llama-indigo hover:text-[#3B3775] font-bold">Sign in here.</button>
+        </p>
+      </div>
     </div>
   );
 }

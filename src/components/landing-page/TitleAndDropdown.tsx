@@ -10,7 +10,7 @@ import type { SelectOption } from "~/types/selection";
 import { DocumentSelectCombobox } from "~/components/landing-page/SelectDocType";
 import Select from "react-select";
 import {
-  MAX_NUMBER_OF_SELECTED_DOCUMENTS,
+  MAX_SELECTED_DOCS,
   useDocumentSelector,
 } from "~/hooks/useDocumentSelector";
 import { backendClient } from "~/api/backend";
@@ -21,9 +21,14 @@ import { useIntercom } from "react-use-intercom";
 import { LoadingSpinner } from "~/components/basics/Loading";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import AuthPanel from "../dropdowns/AuthPanel";
+import { getToken } from "../../supabase/manageTokens";
 
 interface TitleAndDropdownProps {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+interface CreateConversationResponse {
+  newConversationId: string;
 }
 
 export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedIn }) => {
@@ -36,7 +41,11 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
   const createConversation = async (documentIds: string[]) => {
     setIsLoadingConversation(true);
     try {
-      const token = localStorage.getItem('authToken');
+      const token = await getToken();
+      if (!token) {
+        console.error('Could not get access token.')
+        return;
+      }
 
       const response = await fetch('/api/create-conversation', {
         method: 'POST',
@@ -50,7 +59,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
         throw new Error('Failed to create conversation');
       }
 
-      const { newConversationId } = await response.json();
+      const { newConversationId }: CreateConversationResponse = await response.json() as CreateConversationResponse;
 
       setIsLoadingConversation(false);
       await router.push(`conversation/${newConversationId}`);
@@ -65,7 +74,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
     event.preventDefault();
 
     const selectedDocumentIds = selectedDocuments.map((val) => val.id);
-    createConversation(selectedDocumentIds);
+    void createConversation(selectedDocumentIds);
   };
 
   const {
@@ -88,6 +97,8 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
     shouldFocusCompanySelect,
     setShouldFocusCompanySelect,
     sortedSelectedDocuments,
+    handleAddAll,
+    handleRemoveAll
   } = useDocumentSelector();
 
   const [selectableGeographies, setSelectableGeographies] = useState<SelectOption[]>();
@@ -114,7 +125,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
           setIsLoggedIn={setIsLoggedIn}
         />
       </div>
-      <div className="mt-28 flex flex-col items-center">
+      <div className="flex flex-col items-center">
         <div className="w-4/5 text-center text-4xl">
           Search government documents with 
           <span className="font-bold"> GovScan</span>
@@ -206,7 +217,6 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
               >
                 Add
               </button>
-
               <div className="absolute -right-[10px] bottom-[-4px] w-[140px] font-nunito text-[10px] text-[#7F7F7F]">
                 {" "}
                 <span className="font-bold">Shift + Enter </span>to add to list{" "}
@@ -216,7 +226,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
 
           <div className="mt-2 flex h-full w-11/12 flex-col justify-start overflow-scroll px-4 ">
             {selectedDocuments.length === 0 && (
-              <div className="m-4 flex h-full flex-col items-center justify-center bg-gray-00 font-nunito text-gray-90">
+              <div className="m-4 flex h-1/6 flex-col items-center justify-center bg-gray-00 font-nunito text-gray-90">
                 <div>
                   <CgFileDocument size={46} />
                 </div>
@@ -251,27 +261,37 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
           </div>
 
           <div className="h-1/8 mt-2 flex w-full items-center justify-center rounded-lg bg-gray-00">
+            <button
+              className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+              onClick={handleAddAll}
+            >
+              Add Max
+            </button>
+            <button
+              className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+              onClick={handleRemoveAll}
+            >
+              Remove All
+            </button>
+            
             <div className="flex flex-wrap items-center justify-center">
-              {isDocumentSelectionEnabled && (
-                <>
-                  <div className="w-48 font-nunito md:ml-8 ">
-                    Add up to{" "}
-                    <span className="font-bold">
-                      {" "}
-                      {MAX_NUMBER_OF_SELECTED_DOCUMENTS -
-                        selectedDocuments.length}
-                    </span>{" "}
-                    {isStartConversationButtonEnabled ? (
-                      <>more docs</>
-                    ) : (
-                      <>docs</>
-                    )}
-                  </div>
-                  <div className="ml-1 font-nunito ">
-                    {isStartConversationButtonEnabled ? <>or</> : <>to</>}{" "}
-                  </div>
-                </>
-              )}
+              <>
+                <div className="w-48 font-nunito md:ml-8 ">
+                  Added{" "}
+                  <span className="font-bold">
+                    {" "}
+                    {selectedDocuments.length}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-bold">
+                    {" "}
+                    {MAX_SELECTED_DOCS}
+                  </span>{" "}docs
+                </div>
+                <div className="ml-1 font-nunito ">
+                  {isStartConversationButtonEnabled ? <>or</> : <>to</>}{" "}
+                </div>
+              </>
               <div className="md:ml-12">
                 <button
                   disabled={!isStartConversationButtonEnabled}

@@ -14,6 +14,7 @@ import {
   getAvailableYears,
 } from "~/utils/landing-page-selection";
 import useLocalStorage from "./utils/useLocalStorage";
+import { getToken } from "../supabase/manageTokens";
 
 interface SupabaseDocument {
   doc_type: string;
@@ -28,7 +29,7 @@ export interface ResponseJSON {
   documents: SupabaseDocument[];
 }
 
-export const MAX_NUMBER_OF_SELECTED_DOCUMENTS = 20;
+export const MAX_SELECTED_DOCS = 10;
 
 export const useDocumentSelector = () => {
   const [availableDocuments, setAvailableDocuments] = useState<Document[]>(
@@ -49,9 +50,9 @@ export const useDocumentSelector = () => {
 
   useEffect(() => {
     const getDocuments = async () => {
-      const token = localStorage.getItem('authToken');
-
+      const token = await getToken();
       if (!token) {
+        console.error('Could not get access token.')
         return;
       }
 
@@ -70,7 +71,7 @@ export const useDocumentSelector = () => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
 
-        const response_json: ResponseJSON = await res.json();
+        const response_json: ResponseJSON = await res.json() as ResponseJSON;
 
         const docs = response_json.documents.map((x: SupabaseDocument): Document => ({
           docType: x.doc_type,
@@ -127,6 +128,24 @@ export const useDocumentSelector = () => {
     );
   };
 
+  const handleRemoveAll = () => {
+    setSelectedDocuments([]);
+  };
+
+  const handleAddAll = () => {
+    const updatedSelection = new Set([...selectedDocuments]);
+     
+    for (const doc of availableDocuments) {
+      if (updatedSelection.size >= MAX_SELECTED_DOCS) break;
+      updatedSelection.add(doc);
+    }
+    
+    setSelectedDocuments([...updatedSelection]);
+    setSelectedGeography(null);
+    setSelectedDocumentType(null);
+    setSelectedYear(null);
+  };
+
   useEffect(() => {
     setSelectedYear(null);
   }, [selectedGeography]);
@@ -166,7 +185,7 @@ export const useDocumentSelector = () => {
   }, [handleAddDocument]);
 
   const isDocumentSelectionEnabled =
-    selectedDocuments.length < MAX_NUMBER_OF_SELECTED_DOCUMENTS;
+    selectedDocuments.length < MAX_SELECTED_DOCS;
 
   const isStartConversationButtonEnabled = selectedDocuments.length > 0;
 
@@ -236,5 +255,7 @@ export const useDocumentSelector = () => {
     selectDocumentType,
     shouldFocusCompanySelect,
     setShouldFocusCompanySelect,
+    handleAddAll,
+    handleRemoveAll
   };
 };

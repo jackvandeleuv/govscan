@@ -15,9 +15,9 @@ const AuthPanel: React.FC<AuthPanelProps> = ( {setIsLoggedIn} ) => {
     <div className="relative z-50">
       <button
         onClick={handleLogout}
-        className="bg-orange-500 text-white py-2 px-4 rounded hover:bg-red-600"
+        className="bg-llama-indigo text-white py-2 px-4 rounded hover:hover:bg-[#3B3775]"
       >
-        Logout
+        Sign Out
       </button>
     </div>
   );
