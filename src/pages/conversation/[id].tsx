@@ -264,7 +264,7 @@ export default function Conversation() {
   }
 
 
-  async function handleExport() {
+  async function handleExport(): Promise<void> {
     const token = await getToken();
     if (!token) {
       console.error('Could not get access token.')
@@ -338,7 +338,7 @@ export default function Conversation() {
                   <BiArrowBack className="mr-1" /> Back to Document Selection
                 </button>
                 <button
-                  onClick={void handleExport}
+                  onClick={(() => void handleExport())}
                   className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
                 >
                   <div className="text-xs font-medium">Export</div>
@@ -349,7 +349,6 @@ export default function Conversation() {
                   className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
                 >
                   <div className="text-xs font-medium">Toggle PDF</div>
-                  <FiShare className="ml-1" size={12} />
                 </button>
               </div>
             </div>
