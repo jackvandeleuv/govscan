@@ -141,7 +141,7 @@ export default function Conversation() {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 20000  
+        timeout: 45000  
       });
   
       const parsedData: ChatResponse = response.data as ChatResponse;
