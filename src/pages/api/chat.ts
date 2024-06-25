@@ -62,8 +62,8 @@ type AnthropicAPIResponse = {
 
 
 async function anthropicMessage(fullPrompt: string): Promise<string | null> {
-  const ANTHROPIC_CHAT_MODEL = "claude-3-haiku-20240307";
-  // const ANTHROPIC_CHAT_MODEL = "claude-3-5-sonnet-20240620";
+  // const ANTHROPIC_CHAT_MODEL = "claude-3-haiku-20240307";
+  const ANTHROPIC_CHAT_MODEL = "claude-3-5-sonnet-20240620";
 
   const chatUrl = 'https://api.anthropic.com/v1/messages';
   const chatHeaders = {
