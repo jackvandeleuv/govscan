@@ -196,11 +196,6 @@ export const useDocumentSelector = () => {
       setFocusYear(true);
     }
   };
-
-
-  useEffect(() => {
-    console.log("selectedDocumentType: " + selectedDocumentType?.docType)
-  }, [selectedDocumentType]);
   
 
   const selectDocumentType = (docType: DocumentType | null) => {
