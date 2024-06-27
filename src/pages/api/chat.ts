@@ -222,28 +222,12 @@ export default async function handler(
   }
 
   const messageUrl = `${process.env.SUPABASE_URL!}/rest/v1/message`;
-  const user_created_at = new Date().toISOString();
 
   const headers: HeadersInit = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
     'apikey': process.env.SUPABASE_KEY!,
   };
-
-  // POST user message
-  void fetch(messageUrl, {
-    method: 'POST',
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      role: ROLE.USER, 
-      content: userMessage,
-      conversation_id: conversation_id,
-      created_at: user_created_at
-    })
-  });
 
   const queryVector = getEmbedding(userMessage);
 
@@ -299,13 +283,13 @@ export default async function handler(
     sub_processes: subProcesses
   };
 
-  res.status(202).json({ message: 'Search successful. Pending assistant message.', data: assistantMessage });
 
   try {
     assistantMessage.content = await anthropicMessage(full_prompt) || '';
+    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
 
     // POST assistant message.
-    void fetch(messageUrl, {
+    const assistantMessageResponse = fetch(messageUrl, {
       method: 'POST',
       headers: {
         ...headers,
@@ -325,7 +309,7 @@ export default async function handler(
     for (const subProcess of subProcesses) {
       const citations = subProcess.metadata_map.sub_question.citations;
       for (const citation of citations) {
-        void fetch(dataMessageUrl, {
+        await fetch(dataMessageUrl, {
           method: 'POST',
           headers: {
             ...headers,
@@ -340,6 +324,8 @@ export default async function handler(
         });
       }
     }
+
+    await assistantMessageResponse;
 
   } catch (error) {
     console.error('Error in response stream:', error);

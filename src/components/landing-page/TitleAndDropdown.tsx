@@ -301,7 +301,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
                       </div>
                     ) : (
                       <>
-                        start your conversation
+                        Start Your Conversation
                         <div className="ml-2">
                           <AiOutlineArrowRight />
                         </div>

@@ -349,43 +349,44 @@ export const RenderConversations: React.FC<IRenderConversation> = ({
   const showLoading = messages[messages.length - 1]?.role === ROLE.USER;
   return (
     <div className="box-border flex h-full flex-col justify-start font-nunito text-sm text-[#2B3175]">
-      {messages.map((message, index) => {
-        let display;
-        if (message.role == ROLE.ASSISTANT) {
-          display = (
-            <AssistantDisplay
-              message={message}
-              key={`${message.id}-answer-${index}`}
-              documents={documents}
-              setCollapsed={setCollapsed}
-            />
-          );
-        } else if (message.role == ROLE.USER) {
-          display = (
-            <UserDisplay
-              message={message}
-              key={`${message.id}-question-${index}-user`}
-              showLoading={index === messages.length - 1 ? showLoading : false}
-              setCollapsed={setCollapsed}
-            />
-          );
-        } else {
-          display = <div>Sorry, there is a problem.</div>;
-        }
-        if (index === messages.length - 1) {
-          return (
-            <div className="mb-4 flex flex-col" key={`message-${message.id}`}>
-              {display}
-            </div>
-          );
-        } else {
-          return (
-            <div className="flex flex-col" key={`${message.id}-${index}`}>
-              {display}
-            </div>
-          );
-        }
-      })}
+      {messages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map((message, index) => {
+          let display;
+          if (message.role == ROLE.ASSISTANT) {
+            display = (
+              <AssistantDisplay
+                message={message}
+                key={`${message.id}-answer-${index}`}
+                documents={documents}
+                setCollapsed={setCollapsed}
+              />
+            );
+          } else if (message.role == ROLE.USER) {
+            display = (
+              <UserDisplay
+                message={message}
+                key={`${message.id}-question-${index}-user`}
+                showLoading={index === messages.length - 1 ? showLoading : false}
+                setCollapsed={setCollapsed}
+              />
+            );
+          } else {
+            display = <div>Sorry, there is a problem.</div>;
+          }
+          if (index === messages.length - 1) {
+            return (
+              <div className="mb-4 flex flex-col" key={`message-${message.id}`}>
+                {display}
+              </div>
+            );
+          } else {
+            return (
+              <div className="flex flex-col" key={`${message.id}-${index}`}>
+                {display}
+              </div>
+            );
+          }
+        })}
       {messages.length > 0 && isMessagePending && (
         <ChatSkeleton />
       )}

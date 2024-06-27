@@ -147,8 +147,7 @@ export default async function handler(
   
   const updatedMessages: Message[] = [];
   for (const message of messages) {
-    const subProcesses = makeSubprocesses(message, citationMap, documents);
-    if (!subProcesses) continue;
+    const subProcesses = makeSubprocesses(message, citationMap, documents) || undefined;
     updatedMessages.push({
       ...message,
       sub_processes: subProcesses

@@ -74,6 +74,39 @@ export default function Conversation() {
     }
   }, [id]);
   
+
+  async function postUserMessage(
+    userMessage: string,
+    conversation_id: string,
+    user_created_at: string
+  ) {
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    }
+
+    const messageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/message`;
+  
+    const headers: HeadersInit = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    };
+  
+    // POST user message
+    void fetch(messageUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        role: ROLE.USER, 
+        content: userMessage,
+        conversation_id: conversation_id,
+        created_at: user_created_at
+      })
+    });
+  }
+
   useEffect(() => {
     const fetchConversation = async (id: string) => {
       const endpoint = '/api/fetch-conversation';
@@ -131,9 +164,12 @@ export default function Conversation() {
 
     const assistant_message_id = uuidv4();
 
+    const user_created_at = new Date().toISOString();
+
     setIsMessagePending(true);
-    userSendMessage(userMessage);
+    userSendMessage(userMessage, user_created_at);
     setUserMessage("");
+    void postUserMessage(userMessage, conversationId, user_created_at);
 
     const num_docs = selectedDocuments.length;
     const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}`;
@@ -145,52 +181,15 @@ export default function Conversation() {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 8000  // Vercel has a 10 second limit for first response.  
+        timeout: 30000  
       });
   
-      if (response.status !== 202) throw new Error(response.statusText);
+      if (response.status !== 200) throw new Error(response.statusText);
   
       const parsedData: ChatResponse = response.data as ChatResponse;
       const message = parsedData.data;
-
-      const startTime = Date.now(); 
-  
-      while (true) {
-        const currentTime = Date.now();
-        const elapsedTime = (currentTime - startTime) / 1000; 
-  
-        if (elapsedTime > 120) { 
-          console.error('Timeout: Fetching assistant message took longer than 2 minutes.');
-          break;
-        }
-
-        const headers: HeadersInit = {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        };
-        const messageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/message?select=content&id=eq.${assistant_message_id}`;
-        const messageRequest = await fetch(messageUrl, {
-          method: 'GET',
-          headers: headers
-        });
-  
-        if (!messageRequest.ok) {
-          const error: ErrorResponse = await messageRequest.json() as ErrorResponse;
-          console.error('Error fetching assistant message:', error);
-          break;
-        }
-  
-        const updatedMessages: Message[] = await messageRequest.json() as Message[];
-
-        if (updatedMessages.length > 0 && updatedMessages[0]?.content) {
-          message.content = updatedMessages[0].content;
-          systemSendMessage(message);
-          break;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Poll every 2 seconds
-      }
+      systemSendMessage(message);
+      
     } catch (error) {
       console.error('Request failed:', error);
     } finally {
@@ -201,6 +200,7 @@ export default function Conversation() {
   const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setUserMessage(event.target.value);
   };
+
   useEffect(() => {
     const textarea = document.querySelector("textarea");
     if (textarea) {
