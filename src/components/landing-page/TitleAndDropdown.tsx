@@ -104,11 +104,15 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
   const [selectableGeographies, setSelectableGeographies] = useState<SelectOption[]>();
 
   useEffect(() => {
+    console.log('availableGeographies:')
+    console.log(availableGeographies)
     const uniqueGeographies = Array.from(new Set(availableGeographies.map(geo => geo.name)));
     const selectable = uniqueGeographies.map((geo) => ({
       value: geo,
       label: geo,
     }));
+    console.log('selectableGeographies:')
+    console.log(selectable)
     setSelectableGeographies(selectable);
   }, [availableGeographies]);
 

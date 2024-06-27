@@ -196,11 +196,16 @@ export const useDocumentSelector = () => {
       setFocusYear(true);
     }
   };
+
+
+  useEffect(() => {
+    console.log("selectedDocumentType: " + selectedDocumentType?.docType)
+  }, [selectedDocumentType]);
   
 
   const selectDocumentType = (docType: DocumentType | null) => {
     setSelectedDocumentType(docType);
-    setFocusGeography(true)
+    setFocusGeography(true);
   };
 
   const [shouldFocusCompanySelect, setShouldFocusCompanySelect] =
