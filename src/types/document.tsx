@@ -16,6 +16,7 @@ export interface Document extends DocumentType {
   year: string;
   geography: string;
   quarter?: string;
+  language: string;
   color?: DocumentColorEnum;
   aws_s3_bucket_name?: string; 
   aws_s3_object_name?: string;

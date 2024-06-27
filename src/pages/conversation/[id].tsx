@@ -36,6 +36,11 @@ interface ChatResponse {
   data: Message;
 }
 
+type ErrorResponse = {
+  message: string;
+  [key: string]: any;
+};
+
 const MAX_USER_MESSAGE_TOKENS = 500;
 
 export default function Conversation() {
@@ -110,7 +115,6 @@ export default function Conversation() {
   }, [conversationId, setMessages]);
 
   
-  // Keeping this in this file for now because this will be subject to change
   const submit = async () => {
     if (!userMessage || !conversationId) return;
 
@@ -141,18 +145,57 @@ export default function Conversation() {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 45000  
+        timeout: 8000  // Vercel has a 10 second limit for first response.  
       });
+  
+      if (response.status !== 202) throw new Error(response.statusText);
   
       const parsedData: ChatResponse = response.data as ChatResponse;
       const message = parsedData.data;
-      systemSendMessage(message);
 
+      const startTime = Date.now(); 
+  
+      while (true) {
+        const currentTime = Date.now();
+        const elapsedTime = (currentTime - startTime) / 1000; 
+  
+        if (elapsedTime > 120) { 
+          console.error('Timeout: Fetching assistant message took longer than 2 minutes.');
+          break;
+        }
+
+        const headers: HeadersInit = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        };
+        const messageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/message?select=content&id=eq.${assistant_message_id}`;
+        const messageRequest = await fetch(messageUrl, {
+          method: 'GET',
+          headers: headers
+        });
+  
+        if (!messageRequest.ok) {
+          const error: ErrorResponse = await messageRequest.json() as ErrorResponse;
+          console.error('Error fetching assistant message:', error);
+          break;
+        }
+  
+        const updatedMessages: Message[] = await messageRequest.json() as Message[];
+
+        if (updatedMessages.length > 0 && updatedMessages[0]?.content) {
+          message.content = updatedMessages[0].content;
+          systemSendMessage(message);
+          break;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Poll every 2 seconds
+      }
     } catch (error) {
       console.error('Request failed:', error);
+    } finally {
+      setIsMessagePending(false);
     }
-
-    setIsMessagePending(false);
   };
 
   const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {

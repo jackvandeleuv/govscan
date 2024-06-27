@@ -79,7 +79,8 @@ export const useDocumentSelector = () => {
           id: x.id,
           url: x.url,
           year: `${x.year}, ${x.language}`,
-          geography: x.geography
+          geography: x.geography,
+          language: x.language
         }));
 
         setAvailableDocuments(docs);
@@ -199,7 +200,7 @@ export const useDocumentSelector = () => {
 
   const selectDocumentType = (docType: DocumentType | null) => {
     setSelectedDocumentType(docType);
-    setFocusGeography(true)
+    setFocusGeography(true);
   };
 
   const [shouldFocusCompanySelect, setShouldFocusCompanySelect] =
