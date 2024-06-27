@@ -4,13 +4,9 @@ import { SelectOption } from "~/types/selection";
 export function getAllGeographies(
   documents: Document[], 
   selectedDocumentType: DocumentType | null
-): Geography[] {
+): Geography[] | null {
   if (selectedDocumentType === null) {
-    return documents.map((doc) => {
-      return {
-        name: doc.docType
-      }
-    });
+    return null
   }
 
   const result: Geography[] = [];

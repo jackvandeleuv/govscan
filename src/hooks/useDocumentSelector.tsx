@@ -104,7 +104,10 @@ export const useDocumentSelector = () => {
   const [selectedYear, setSelectedYear] = useState<SelectOption | null>(null);
 
   useEffect(() => {
-    setAvailableGeographies(getAllGeographies(availableDocuments, selectedDocumentType));
+    const geos = getAllGeographies(availableDocuments, selectedDocumentType);
+    if (geos) {
+      setAvailableGeographies(geos);
+    }
   }, [availableDocuments, selectedDocumentType]);
 
   const handleAddDocument = () => {
