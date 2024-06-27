@@ -305,7 +305,9 @@ export default function Conversation() {
         <div className="flex h-[100vh] w-full items-center justify-center">
           <div className={`flex h-[100vh] ${collapsed ? 'w-full' : 'w-[44vw]'} flex-col items-center border-r-2 bg-white`}>
             <div className="flex h-[44px] w-full items-center justify-between border-b-2 ">
+              
               <div className="flex w-full items-center justify-between">
+                
                 <button
                   onClick={() => {
                     router
@@ -316,19 +318,23 @@ export default function Conversation() {
                 >
                   <BiArrowBack className="mr-1" /> Back to Document Selection
                 </button>
-                <button
-                  onClick={(() => void handleExport())}
-                  className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
-                >
-                  <div className="text-xs font-medium">Export</div>
-                  <FiShare className="ml-1" size={12} />
-                </button>
-                <button
-                  onClick={togglePDF}
-                  className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
-                >
-                  <div className="text-xs font-medium">Toggle PDF</div>
-                </button>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={(() => void handleExport())}
+                    className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
+                  >
+                    <div className="text-xs font-medium">Export</div>
+                    <FiShare className="ml-1" size={12} />
+                  </button>
+                  <button
+                    onClick={togglePDF}
+                    className="mr-3 flex items-center justify-center rounded-full border border-gray-400 p-1 px-3 text-gray-400 hover:bg-gray-15"
+                  >
+                    <div className="text-xs font-medium">Toggle PDF</div>
+                  </button>
+                </div>
+
               </div>
             </div>
             <div className={`flex max-h-[calc(100vh-114px)] ${collapsed ? 'w-full' : 'w-[44vw]'} flex-grow flex-col overflow-scroll`}>
