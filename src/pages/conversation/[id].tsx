@@ -73,8 +73,6 @@ export default function Conversation() {
       setConversationId(id);
     }
   }, [id]);
-
-  useEffect(() => {console.log('messages set to:'); console.log(messages)}, [messages])
   
 
   async function postUserMessage(
@@ -132,8 +130,6 @@ export default function Conversation() {
       }
 
       const response_json: FetchConversationJSON = await res.json() as FetchConversationJSON; 
-      console.log('response json:')
-      console.log(response_json)
 
       if (response_json.documents) {
         setSelectedDocuments(response_json.documents);
