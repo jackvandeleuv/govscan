@@ -31,6 +31,7 @@ function SignUp() {
     });
 
     if (error) {
+      console.error("Sign up error: " + error.message);
       setError(error.message);
       return;
     }

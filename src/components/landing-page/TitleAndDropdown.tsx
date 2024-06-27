@@ -119,7 +119,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
   }, []);
 
   return (
-    <div className="landing-page-gradient-1 relative flex h-max w-screen flex-col items-center font-lora pb-32">
+    <div className="landing-page-gradient-1 relative flex h-max w-screen flex-col items-center font-lora pb-16">
       <div className="flex flex-col items-end w-full p-5">
         <AuthPanel 
           setIsLoggedIn={setIsLoggedIn}
@@ -129,11 +129,6 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
         <div className="w-4/5 text-center text-4xl">
           Search government documents with 
           <span className="font-bold"> GovScan</span>
-        </div>
-        <div className="mt-4 flex items-center justify-center">
-          <div className="w-3/5 text-center font-nunito">
-            Effortlessly analyze multifaceted government documents.
-          </div>
         </div>
       </div>
       {isMobile ? (
@@ -148,8 +143,9 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
             Start your conversation by selecting the documents you want to
             explore
           </div>
-          <div className="h-1/8 flex w-full flex-wrap items-center justify-center font-nunito">
-            <div className="m-1 flex w-96 items-center">
+          <div className="h-1/8 flex w-full flex-row items-center justify-center font-nunito overflow-hidden">
+            
+            <div className="m-1 flex w-56 items-center">
               <DocumentSelectCombobox
                 selectedItem={selectedDocumentType}
                 setSelectedItem={selectDocumentType}
@@ -157,11 +153,6 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
                 shouldFocusItem={shouldFocusCompanySelect}
                 setFocusState={setShouldFocusCompanySelect}
               />
-              <div className="flex h-[41px] w-[40px] items-center justify-center bg-[#F7F7F7] pr-3">
-                <span className="mt-1 font-nunito text-[13px] font-bold text-[#7F7F7F]">
-                  ⌘K
-                </span>
-              </div>
             </div>
 
             <div className="m-1 flex h-[41px] w-56 items-center bg-[#F7F7F7]">
@@ -187,7 +178,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
               </div>
             </div>
 
-            <div className="m-1 flex h-[41px] w-48 items-center rounded-e bg-[#F7F7F7]">
+            <div className="m-1 flex h-[41px] w-56 items-center rounded-e bg-[#F7F7F7]">
               <div className="flex h-[41px] w-[30px] items-center justify-center bg-[#F7F7F7] pl-3">
                 <AiTwotoneCalendar size={30} />
               </div>
@@ -209,24 +200,37 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
                 />
               </div>
             </div>
+          </div>
+
+          <div className="h-1/8 flex w-full flex-wrap items-center justify-center font-nunito">
             <div className="relative">
+
               <button
                 className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
                 onClick={handleAddDocument}
                 disabled={!isDocumentSelectionEnabled || !selectedYear}
               >
-                Add
+                Add One
               </button>
-              <div className="absolute -right-[10px] bottom-[-4px] w-[140px] font-nunito text-[10px] text-[#7F7F7F]">
-                {" "}
-                <span className="font-bold">Shift + Enter </span>to add to list{" "}
-              </div>
+              <button
+              className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+              onClick={handleAddAll}
+              >
+                Add Max
+              </button>
+              <button
+                className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+                onClick={handleRemoveAll}
+              >
+                Remove All
+              </button>
+
             </div>
           </div>
 
           <div className="mt-2 flex h-full w-11/12 flex-col justify-start overflow-scroll px-4 ">
             {selectedDocuments.length === 0 && (
-              <div className="m-4 flex h-1/6 flex-col items-center justify-center bg-gray-00 font-nunito text-gray-90">
+              <div className="flex flex-col items-center justify-center bg-gray-00 font-nunito text-gray-90">
                 <div>
                   <CgFileDocument size={46} />
                 </div>
@@ -260,20 +264,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
             ))}
           </div>
 
-          <div className="h-1/8 mt-2 flex w-full items-center justify-center rounded-lg bg-gray-00">
-            <button
-              className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
-              onClick={handleAddAll}
-            >
-              Add Max
-            </button>
-            <button
-              className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
-              onClick={handleRemoveAll}
-            >
-              Remove All
-            </button>
-            
+          <div className="h-1/8 mt-2 flex w-full items-center justify-center rounded-lg bg-gray-00">            
             <div className="flex flex-wrap items-center justify-center">
               <>
                 <div className="w-48 font-nunito md:ml-8 ">

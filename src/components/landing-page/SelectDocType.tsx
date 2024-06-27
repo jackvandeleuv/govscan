@@ -94,7 +94,7 @@ export const DocumentSelectCombobox: React.FC<DocumentSelectComboboxProps> = ({
         </div>
       </div>
       <ul
-        className={`absolute z-20 mt-1 max-h-72 w-72 overflow-scroll bg-white p-0 shadow-md ${
+        className={`absolute z-20 mt-1 max-h-72 w-72 overflow-y-scroll bg-white p-0 shadow-md ${
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           !(isOpen && filteredDocuments.length) && "hidden"
         }`}

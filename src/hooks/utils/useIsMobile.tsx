@@ -1,7 +1,7 @@
 import { useWindowWidth } from "@wojtekmaj/react-hooks";
 import { useEffect, useState } from "react";
 
-export const MOBILE_BREAKPOINT = 768;
+export const MOBILE_BREAKPOINT = 800;
 export default function useIsMobile() {
   const windowWidth = useWindowWidth();
   const [isMobile, setIsMobile] = useState(false);

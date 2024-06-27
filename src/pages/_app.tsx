@@ -6,6 +6,7 @@ import ReactGA from "react-ga4";
 import { IntercomProvider } from "react-use-intercom";
 import { GOOGLE_ANALYTICS_ID, INTERCOM_ID } from "~/constants";
 import { Analytics } from "@vercel/analytics/react";
+import Head from "next/head";
 
 ReactGA.initialize(GOOGLE_ANALYTICS_ID);
 
@@ -15,11 +16,16 @@ ReactGA.initialize(GOOGLE_ANALYTICS_ID);
 const MyApp: AppType = ({ Component, pageProps }) => {
 
   return (
+    <>
+      <Head>
+        <title>GovScan</title>
+      </Head>
       <IntercomProvider appId={INTERCOM_ID}>
         <Layout>
           <Component {...pageProps} />
         </Layout>
       </IntercomProvider>
+    </>
   );
 };
 
