@@ -383,7 +383,11 @@ export const RenderConversations: React.FC<IRenderConversation> = ({
           }
         })}
       {messages.length > 0 && isMessagePending && (
-        <ChatSkeleton />
+        <>
+          <ChatSkeleton />
+          <ChatSkeleton />
+          <ChatSkeleton />
+        </>
       )}
       {messages.length === 0 && (
         <div className="flex h-full items-center justify-center ">
