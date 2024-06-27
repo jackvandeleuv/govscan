@@ -4,6 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import { MessageSubprocessSource, BackendCitation } from '~/types/conversation';
 import { MESSAGE_STATUS, ROLE } from "~/types/conversation";
 
+// This function can run for a maximum of 60 seconds
+export const maxDuration = 60; 
+export const dynamic = 'force-dynamic';
 
 interface SearchResult {
   text: string;
