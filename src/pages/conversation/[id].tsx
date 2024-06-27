@@ -95,7 +95,7 @@ export default function Conversation() {
     };
   
     // POST user message
-    void fetch(messageUrl, {
+    await fetch(messageUrl, {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
