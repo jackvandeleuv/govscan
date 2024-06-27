@@ -336,7 +336,7 @@ export default async function handler(
     const assistantMessageResponse = await assistantMessageRequest;
     if (!assistantMessageResponse.ok) {
       throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
-    }
+    } 
     
   } catch (error) {
     console.error('Error in response stream:', error);
