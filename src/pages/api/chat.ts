@@ -289,7 +289,7 @@ export default async function handler(
     res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
 
     // POST assistant message.
-    const assistantMessageResponse = fetch(messageUrl, {
+    await fetch(messageUrl, {
       method: 'POST',
       headers: {
         ...headers,
@@ -306,26 +306,32 @@ export default async function handler(
 
     // POST citations
     const dataMessageUrl = `${process.env.SUPABASE_URL!}/rest/v1/datamessage`;
+    const citationsData: Array<{ data_id: string; message_id: string; conversation_id: string; score: number }> = [];
+
     for (const subProcess of subProcesses) {
       const citations = subProcess.metadata_map.sub_question.citations;
       for (const citation of citations) {
-        await fetch(dataMessageUrl, {
-          method: 'POST',
-          headers: {
-            ...headers,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            data_id: citation.id,
-            message_id: subProcess.messageId,
-            conversation_id: conversation_id,
-            score: citation.score
-          })
+        citationsData.push({
+          data_id: citation.id,
+          message_id: subProcess.messageId,
+          conversation_id: conversation_id,
+          score: citation.score
         });
       }
     }
 
-    await assistantMessageResponse;
+    const dataMessageResponse = await fetch(dataMessageUrl, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(citationsData)
+    });
+
+    if (!dataMessageResponse.ok) {
+      throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
+    }
 
   } catch (error) {
     console.error('Error in response stream:', error);
