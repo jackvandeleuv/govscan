@@ -15,7 +15,7 @@ export const DisplayMultiplePdfs: React.FC<DisplayMultiplePdfsProps> = ({
 
   return (
     <>
-      <div className="flex h-full items-start justify-center ">
+      <div className="flex h-full items-start justify-center">
         {pdfs.map((file) => {
           return (
             <div
@@ -26,13 +26,13 @@ export const DisplayMultiplePdfs: React.FC<DisplayMultiplePdfsProps> = ({
             </div>
           );
         })}
-        <div className="flex h-full w-[80px] flex-col">
+        <div className="flex h-full w-[80px] flex-col overflow-y-scroll overflow-x-hidden scrollbar-hide">
           <div className="flex h-[43px] w-[80px] items-center justify-center border-b border-l font-bold text-gray-90 "></div>
           {pdfs.map((file, index) => (
             <div key={index}>
               <button
                 onClick={() => handlePdfFocus(file)}
-                className={`group flex h-[60px] w-[80px] items-end  justify-start border px-2 py-1 font-nunito text-sm font-bold ${
+                className={`group flex w-[80px] items-end justify-start border px-2 py-1 font-nunito text-sm font-bold ${
                   isActivePdf(file)
                     ? "border-l-0 bg-gray-pdf"
                     : "bg-white font-light text-gray-60 "
@@ -43,11 +43,11 @@ export const DisplayMultiplePdfs: React.FC<DisplayMultiplePdfsProps> = ({
                     file.color ? borderColors[file.color] : ''
                   } ${
                     !isActivePdf(file)
-                      ? "group-hover:border-l-4 group-hover:pl-1 group-hover:font-bold group-hover:text-gray-90"
+                      ? "group-hover:font-bold group-hover:text-gray-90"
                       : ""
                   }`}
                 >
-                  <div>{`${file.geography.split(',')[0]!}`}</div>
+                  <div>{`${file.geography}`}</div>
                 </div>
               </button>
             </div>

@@ -120,8 +120,8 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
   }, []);
 
   return (
-    <div className="landing-page-gradient-1 relative flex h-max w-screen flex-col items-center font-lora pb-16">
-      <div className="flex flex-col items-end w-full p-5">
+    <div className="landing-page-gradient-1 relative flex h-max w-full flex-col items-center font-lora pb-16">
+      <div className="flex flex-col items-end w-11/12 p-5">
         <AuthPanel 
           setIsLoggedIn={setIsLoggedIn}
         />
