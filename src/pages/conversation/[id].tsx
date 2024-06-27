@@ -173,7 +173,7 @@ export default function Conversation() {
     setIsMessagePending(true);
     userSendMessage(userMessage, user_created_at);
     setUserMessage("");
-    postUserMessage(userMessage, conversationId, user_created_at);
+    void postUserMessage(userMessage, conversationId, user_created_at);
 
     const num_docs = selectedDocuments.length;
     const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}`;
