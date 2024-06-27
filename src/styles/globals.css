@@ -18,7 +18,7 @@
 }
 
 .loader {
-  border-top-color: #9ca3af; /* The color of your spinner */
+  border-top-color: #9ca3af; 
   animation: spin 1s linear infinite;
 }
 
