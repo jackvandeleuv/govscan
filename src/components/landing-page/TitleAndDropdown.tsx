@@ -103,16 +103,13 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
 
   const [selectableGeographies, setSelectableGeographies] = useState<SelectOption[]>();
 
+
   useEffect(() => {
-    console.log('availableGeographies:')
-    console.log(availableGeographies)
     const uniqueGeographies = Array.from(new Set(availableGeographies.map(geo => geo.name)));
     const selectable = uniqueGeographies.map((geo) => ({
       value: geo,
       label: geo,
     }));
-    console.log('selectableGeographies:')
-    console.log(selectable)
     setSelectableGeographies(selectable);
   }, [availableGeographies]);
 
@@ -147,7 +144,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
             Start your conversation by selecting the documents you want to
             explore
           </div>
-          <div className="h-1/8 flex w-full flex-row items-center justify-center font-nunito overflow-hidden">
+          <div className="h-1/8 flex w-full flex-row items-center justify-center font-nunito">
             
             <div className="m-1 flex w-56 items-center">
               <DocumentSelectCombobox
