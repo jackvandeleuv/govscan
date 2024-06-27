@@ -139,7 +139,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
           </div>
         </div>
       ) : (
-        <div className="mt-5 flex h-min w-11/12 max-w-[1200px] flex-col items-center justify-center rounded-lg border-2 bg-white sm:h-[400px] md:w-9/12 ">
+        <div className="mt-5 flex w-11/12 max-w-[1200px] flex-col items-center justify-center rounded-lg border-2 bg-white h-[500px] md:w-9/12 ">
           <div className="p-4 text-center text-xl font-bold">
             Start your conversation by selecting the documents you want to
             explore
@@ -230,16 +230,6 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
           </div>
 
           <div className="mt-2 flex h-full w-11/12 flex-col justify-start overflow-scroll px-4 ">
-            {selectedDocuments.length === 0 && (
-              <div className="flex flex-col items-center justify-center bg-gray-00 font-nunito text-gray-90">
-                <div>
-                  <CgFileDocument size={46} />
-                </div>
-                <div className="w-84 text-center md:w-64">
-                  Use the document selector above to start adding documents
-                </div>
-              </div>
-            )}
             {sortedSelectedDocuments.map((doc, index) => (
               <div
                 key={index}

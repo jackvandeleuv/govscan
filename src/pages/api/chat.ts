@@ -289,7 +289,7 @@ export default async function handler(
     res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
 
     // POST assistant message.
-    await fetch(messageUrl, {
+    const assistantMessageRequest = fetch(messageUrl, {
       method: 'POST',
       headers: {
         ...headers,
@@ -333,6 +333,11 @@ export default async function handler(
       throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
     }
 
+    const assistantMessageResponse = await assistantMessageRequest;
+    if (!assistantMessageResponse.ok) {
+      throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
+    }
+    
   } catch (error) {
     console.error('Error in response stream:', error);
     res.status(500).json({ message: 'Internal Server Error' });
