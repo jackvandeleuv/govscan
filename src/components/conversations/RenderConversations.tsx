@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MESSAGE_STATUS, MessageSubProcess, ROLE } from "~/types/conversation";
-import type { Citation } from "~/types/conversation";
+import type { BackendCitation, Citation } from "~/types/conversation";
 import type { Message, SubQuestion } from "~/types/conversation";
 import { LoadingSpinner } from "~/components/basics/Loading";
 import { PiCaretDownBold } from "react-icons/pi";
@@ -94,6 +94,16 @@ const SubProcessDisplay: React.FC<SubProcessDisplayProps> = ({
     }
   });
 
+
+  function getMetadataString(citations: BackendCitation[]): string {
+    if (!documents || citations.length === 0) return '';
+    const cite = citations[0];
+    const doc = documents.find((doc) => doc.id === cite!.document_id);
+    if (!doc) return '';
+    return `${doc.geography} (${doc.year}, ${doc.language})`;
+  }
+
+
   return (
     <div key={`${messageId}-sub-process`} className="mt-4 w-full rounded ">
       <div
@@ -127,14 +137,18 @@ const SubProcessDisplay: React.FC<SubProcessDisplayProps> = ({
                           >
                             <div className="flex w-11/12 py-2 flex-col rounded border">
                               <div className="rounded-t border-b bg-gray-00 p-2 font-bold text-gray-90">
-                                {subQuestion.question}
+                                {subQuestion.citations ? 
+                                  getMetadataString(subQuestion.citations)
+                                  :
+                                  subQuestion.question
+                                }
                               </div>
                             
                               {hasCitations && (
                                 <div className=" mr-2 py-3 px-1 flex w-full overflow-x-scroll pl-2 ">
                                   {subQuestion.citations?.sort((a, b) => a.score - b.score).map(
                                     (citation, citationIndex) => {
-                                      // get snippet and dispaly date from documentId
+                                      // get snippet and display date from documentId
                                       const citationDocument = documents.find(
                                         (doc) => doc.id === citation.document_id
                                       );

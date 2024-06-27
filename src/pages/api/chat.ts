@@ -91,7 +91,7 @@ async function anthropicMessage(fullPrompt: string): Promise<string | null> {
       return null;
     }
 
-    const chatResponse: AnthropicAPIResponse = await response.json();
+    const chatResponse: AnthropicAPIResponse = await response.json() as AnthropicAPIResponse;
     return chatResponse.content[0]!.text;
   } catch (error) {
     console.error('Error in anthropicMessage:', error);
@@ -144,7 +144,7 @@ async function getEmbedding(query: string): Promise<number[]> {
       throw new Error(`HTTP error! status: ${embedResponse.status}`);
     }
 
-    const responseJson: EmbedResponse = await embedResponse.json();
+    const responseJson: EmbedResponse = await embedResponse.json() as EmbedResponse;
     return responseJson.data[0]!.embedding;
   } catch (error) {
     console.error('Error in getEmbedding:', error);

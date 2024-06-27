@@ -183,8 +183,6 @@ export default function Conversation() {
   
         const updatedMessages: Message[] = await messageRequest.json() as Message[];
 
-        console.log("Updated messages: " + JSON.stringify(updatedMessages))
-
         if (updatedMessages.length > 0 && updatedMessages[0]?.content) {
           message.content = updatedMessages[0].content;
           systemSendMessage(message);

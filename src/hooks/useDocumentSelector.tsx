@@ -79,7 +79,8 @@ export const useDocumentSelector = () => {
           id: x.id,
           url: x.url,
           year: `${x.year}, ${x.language}`,
-          geography: x.geography
+          geography: x.geography,
+          language: x.language
         }));
 
         setAvailableDocuments(docs);
