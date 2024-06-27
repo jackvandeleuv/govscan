@@ -289,7 +289,7 @@ export default async function handler(
     res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
 
     // POST assistant message.
-    const assistantMessageResponse = fetch(messageUrl, {
+    void fetch(messageUrl, {
       method: 'POST',
       headers: {
         ...headers,
@@ -309,7 +309,7 @@ export default async function handler(
     for (const subProcess of subProcesses) {
       const citations = subProcess.metadata_map.sub_question.citations;
       for (const citation of citations) {
-        await fetch(dataMessageUrl, {
+        void fetch(dataMessageUrl, {
           method: 'POST',
           headers: {
             ...headers,
@@ -324,8 +324,6 @@ export default async function handler(
         });
       }
     }
-
-    await assistantMessageResponse;
 
   } catch (error) {
     console.error('Error in response stream:', error);
