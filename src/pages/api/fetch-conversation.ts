@@ -131,6 +131,7 @@ export default async function handler(
   const documents: Document[] = await documentResponse.json() as Document[];
 
   if (citations === null) {
+    console.log('No citations!')
     res.status(200).json({ documents, messages, message: 'Success' });
     return;
   }
@@ -147,8 +148,9 @@ export default async function handler(
   
   const updatedMessages: Message[] = [];
   for (const message of messages) {
-    const subProcesses = makeSubprocesses(message, citationMap, documents);
-    if (!subProcesses) continue;
+    console.log('Processing message:')
+    console.log(message)
+    const subProcesses = makeSubprocesses(message, citationMap, documents) || undefined;
     updatedMessages.push({
       ...message,
       sub_processes: subProcesses

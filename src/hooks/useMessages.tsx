@@ -8,7 +8,7 @@ import { getDateWithUTCOffset } from "~/utils/timezone";
 const useMessages = (conversationId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const userSendMessage = (content: string) => {
+  const userSendMessage = (content: string, user_created_at: string) => {
     setMessages((prevMessages) => [
       ...prevMessages,
 
@@ -18,7 +18,7 @@ const useMessages = (conversationId: string) => {
         content,
         role: ROLE.USER,
         status: MESSAGE_STATUS.PENDING,
-        created_at: getDateWithUTCOffset(),
+        created_at: new Date(user_created_at),
       },
     ]);
   };
