@@ -188,11 +188,6 @@ const SubProcessDisplay: React.FC<SubProcessDisplayProps> = ({
               )
             }
           </div>
-          {showSpinner && (
-            <div className="ml-2.5 mt-1 ">
-              <LoadingSpinner />
-            </div>
-          )}
           <div className="pb-2"></div>
         </>
       )}
