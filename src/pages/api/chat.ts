@@ -79,19 +79,24 @@ async function anthropicMessage(fullPrompt: string): Promise<string | null> {
       ]
   });
 
-  const response = await fetch(chatUrl, {
-    method: 'POST',
-    headers: chatHeaders,
-    body: chatBody
-  });
+  try {
+    const response = await fetch(chatUrl, {
+      method: 'POST',
+      headers: chatHeaders,
+      body: chatBody
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
       console.error('HTTP Error:', response.status, await response.text());
       return null;
-  }
+    }
 
-  const chatResponse: AnthropicAPIResponse = await response.json() as AnthropicAPIResponse;
-  return chatResponse.content[0]!.text;
+    const chatResponse: AnthropicAPIResponse = await response.json();
+    return chatResponse.content[0]!.text;
+  } catch (error) {
+    console.error('Error in anthropicMessage:', error);
+    return null;
+  }
 }
 
 
@@ -102,12 +107,17 @@ async function openAiMessage(fullPrompt: string): Promise<string | null> {
       apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const completion = await openai.chat.completions.create({
-    model: OPENAI_CHAT_MODEL,
-    messages: [{ role: "user", content: fullPrompt }]
-  });
+  try {
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_CHAT_MODEL,
+      messages: [{ role: "user", content: fullPrompt }]
+    });
 
-  return completion.choices[0]!.message.content!;
+    return completion.choices[0]!.message.content!;
+  } catch (error) {
+    console.error('Error in openAiMessage:', error);
+    return null;
+  }
 }
 
 
@@ -123,18 +133,23 @@ async function getEmbedding(query: string): Promise<number[]> {
     encoding_format: 'float'
   });
 
-  const embedResponse = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: headers,
-    body: data
-  });
+  try {
+    const embedResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: headers,
+      body: data
+    });
 
-  if (!embedResponse.ok) {
-    throw new Error(`HTTP error! status: ${embedResponse.status}`);
+    if (!embedResponse.ok) {
+      throw new Error(`HTTP error! status: ${embedResponse.status}`);
+    }
+
+    const responseJson: EmbedResponse = await embedResponse.json();
+    return responseJson.data[0]!.embedding;
+  } catch (error) {
+    console.error('Error in getEmbedding:', error);
+    throw error;
   }
-
-  const responseJson: EmbedResponse = await embedResponse.json() as EmbedResponse;
-  return responseJson.data[0]!.embedding;
 }
 
 
@@ -151,10 +166,7 @@ function makeCitations(searchResults: SearchResult[]): BackendCitation[] {
 
 
 function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
-  // <document_id, name>
   const docIdToName = new Map<string, string>();
-
-  // <document_id, SearchResult[]>
   const processMap = new Map<string, SearchResult[]>();
 
   for (const result of searchResults) {
@@ -187,7 +199,10 @@ function makeSubprocesses(searchResults: SearchResult[], message_id: string) {
 }
 
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest, 
+  res: NextApiResponse
+) {
   const { conversation_id, message: userMessage, num_docs, assistant_message_id } = req.query as {
     conversation_id: string;
     message: string;
@@ -281,9 +296,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     sub_processes: subProcesses
   };
 
+  res.status(202).json({ message: 'Search successful. Pending assistant message.', data: assistantMessage });
+
   try {
     assistantMessage.content = await anthropicMessage(full_prompt) || '';
-    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
 
     // POST assistant message.
     void fetch(messageUrl, {
