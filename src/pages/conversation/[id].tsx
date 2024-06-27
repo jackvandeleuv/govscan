@@ -145,7 +145,7 @@ export default function Conversation() {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 10000  
+        timeout: 8000  // Vercel has a 10 second limit for first response.  
       });
   
       if (response.status !== 202) throw new Error(response.statusText);

@@ -118,7 +118,7 @@ const SubProcessDisplay: React.FC<SubProcessDisplayProps> = ({
                   className="text-gray-60"
                 >
                   <div>
-                    {subQuestions.sort((a, b) => a.subQuestionIndex - b.subQuestionIndex)
+                    {subQuestions.sort((a, b) => a.subQuestion.question.toLowerCase().localeCompare(b.subQuestion.question.toLowerCase()))
                       .map(({subQuestion, subQuestionIndex, subProcessIndex}) => {
                         const hasCitations = !!subQuestion.citations;
                         return (
