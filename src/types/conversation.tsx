@@ -73,4 +73,5 @@ export interface BackendCitation extends hasId {
   score: number;
   text: string;
   message_id: string;
+  data_id: string;
 }
