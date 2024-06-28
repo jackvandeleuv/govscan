@@ -229,6 +229,19 @@ export default async function handler(
     'apikey': process.env.SUPABASE_KEY!,
   };
 
+  // POST user message
+  const user_created_at = new Date().toISOString();
+  await fetch(messageUrl, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      role: ROLE.USER, 
+      content: userMessage,
+      conversation_id: conversation_id,
+      created_at: user_created_at
+    })
+  });
+
   const queryVector = getEmbedding(userMessage);
 
   const searchUrl = `${process.env.SUPABASE_URL!}/rest/v1/rpc/semantic_search`;
