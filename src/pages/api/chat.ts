@@ -158,7 +158,7 @@ async function getEmbedding(query: string): Promise<number[]> {
 
 function makeCitations(searchResults: SearchResult[]): BackendCitation[] {
   return searchResults.map(element => ({
-    id: element.data_id,
+    id: uuidv4(),
     document_id: element.document_id,
     page_number: element.page, 
     score: element.distance,
