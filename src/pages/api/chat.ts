@@ -343,12 +343,12 @@ export default async function handler(
     });
 
     if (!dataMessageResponse.ok) {
-      throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
+      throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
     }
 
     const assistantMessageResponse = assistantMessageRequest;
     if (!assistantMessageResponse.ok) {
-      throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
+      throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
     } 
     
   } catch (error) {
