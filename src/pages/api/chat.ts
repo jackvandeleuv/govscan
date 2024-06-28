@@ -207,12 +207,24 @@ export default async function handler(
   req: NextApiRequest, 
   res: NextApiResponse
 ) {
-  const { conversation_id, message: userMessage, num_docs, assistant_message_id } = req.query as {
+  const { conversation_id, message: userMessage, num_docs, assistant_message_id, user_created_at } = req.query as {
     conversation_id: string;
     message: string;
     num_docs: string;
     assistant_message_id: string;
+    user_created_at: string;
   };
+
+  let transfer_user_created_at = user_created_at;
+  let assistant_created_at = new Date().toISOString();
+
+  const userTime = new Date(transfer_user_created_at).getTime();
+  const assistantTime = new Date(assistant_created_at).getTime();
+
+  if (userTime >= assistantTime) {
+    transfer_user_created_at = new Date(new Date().getTime() - 10).toISOString();
+    assistant_created_at = new Date().toISOString();
+  }
 
   const requestBody: RequestBody = req.body as RequestBody;
   const token = requestBody.token;
@@ -231,7 +243,6 @@ export default async function handler(
   };
 
   // POST user message
-  const user_created_at = new Date().toISOString();
   await fetch(messageUrl, {
     method: 'POST',
     headers: headers,
@@ -239,7 +250,7 @@ export default async function handler(
       role: ROLE.USER, 
       content: userMessage,
       conversation_id: conversation_id,
-      created_at: user_created_at
+      created_at: transfer_user_created_at
     })
   });
 
@@ -284,8 +295,6 @@ export default async function handler(
   });
   
   const subProcesses = makeSubprocesses(searchResults, assistant_message_id);
-
-  const assistant_created_at = new Date().toISOString();
 
   const assistantMessage = {
     id: assistant_message_id,
@@ -353,6 +362,7 @@ export default async function handler(
     } 
 
     res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
+    console.error("Completed api/chat successfully!")
     
   } catch (error) {
     console.error('Error in response stream:', error);
