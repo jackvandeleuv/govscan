@@ -34,6 +34,7 @@ interface FetchConversationJSON {
 interface ChatResponse {
   message: string;
   data: Message;
+  user_created_at: string;
 }
 
 type ErrorResponse = {
@@ -141,10 +142,19 @@ export default function Conversation() {
     const user_created_at = new Date().toISOString();
 
     setIsMessagePending(true);
-    userSendMessage(userMessage, user_created_at);
+    // userSendMessage(userMessage, user_created_at);
+    const user_message_id = uuidv4();
+    systemSendMessage({
+        id: user_message_id,
+        conversationId,
+        content: userMessage,
+        role: ROLE.USER,
+        status: MESSAGE_STATUS.PENDING,
+        created_at: new Date(user_created_at),
+    });
     setUserMessage("");
 
-    await delay(500);
+    // await delay(1000);
 
     const num_docs = selectedDocuments.length;
     const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}&user_created_at=${user_created_at}`;
@@ -162,8 +172,18 @@ export default function Conversation() {
       if (response.status !== 200) throw new Error(response.statusText);
   
       const parsedData: ChatResponse = response.data as ChatResponse;
-      const message = parsedData.data;
-      systemSendMessage(message);
+
+      systemSendMessage({
+        id: user_message_id,
+        conversationId,
+        content: userMessage,
+        role: ROLE.USER,
+        status: MESSAGE_STATUS.PENDING,
+        created_at: new Date(parsedData.user_created_at),
+      });
+      
+      const assistantMessage = parsedData.data;
+      systemSendMessage(assistantMessage);
       
     } catch (error) {
       console.error('Request failed:', error);

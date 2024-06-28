@@ -361,7 +361,7 @@ export default async function handler(
       throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
     } 
 
-    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
+    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage, user_created_at: transfer_user_created_at });
     console.error("Completed api/chat successfully!")
     
   } catch (error) {

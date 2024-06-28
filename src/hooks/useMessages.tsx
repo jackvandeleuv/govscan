@@ -9,18 +9,18 @@ const useMessages = (conversationId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const userSendMessage = (content: string, user_created_at: string) => {
-    setMessages((prevMessages) => [
-      ...prevMessages,
+    // setMessages((prevMessages) => [
+    //   ...prevMessages,
 
-      {
-        id: uuidv4(),
-        conversationId,
-        content,
-        role: ROLE.USER,
-        status: MESSAGE_STATUS.PENDING,
-        created_at: new Date(user_created_at),
-      },
-    ]);
+    //   {
+    //     id: uuidv4(),
+    //     conversationId,
+    //     content,
+    //     role: ROLE.USER,
+    //     status: MESSAGE_STATUS.PENDING,
+    //     created_at: new Date(user_created_at),
+    //   },
+    // ]);
   };
 
   const systemSendMessage = (message: Message) => {
