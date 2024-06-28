@@ -75,37 +75,6 @@ export default function Conversation() {
   }, [id]);
   
 
-  async function postUserMessage(
-    userMessage: string,
-    conversation_id: string,
-    user_created_at: string
-  ) {
-    const token = await getToken();
-    if (!token) {
-      console.error('Could not get access token.')
-      return;
-    }
-
-    const messageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/message`;
-  
-    const headers: HeadersInit = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    };
-  
-    // POST user message
-    await fetch(messageUrl, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        role: ROLE.USER, 
-        content: userMessage,
-        conversation_id: conversation_id,
-        created_at: user_created_at
-      })
-    });
-  }
 
   useEffect(() => {
     const fetchConversation = async (id: string) => {
@@ -169,7 +138,6 @@ export default function Conversation() {
     setIsMessagePending(true);
     userSendMessage(userMessage, user_created_at);
     setUserMessage("");
-    await postUserMessage(userMessage, conversationId, user_created_at);
 
     const num_docs = selectedDocuments.length;
     const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}`;
