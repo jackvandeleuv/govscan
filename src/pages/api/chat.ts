@@ -300,7 +300,6 @@ export default async function handler(
 
   try {
     assistantMessage.content = await anthropicMessage(full_prompt) || '';
-    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
 
     // POST assistant message.
     const assistantMessageRequest = await fetch(messageUrl, {
@@ -352,6 +351,8 @@ export default async function handler(
     if (!assistantMessageResponse.ok) {
       throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
     } 
+
+    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage });
     
   } catch (error) {
     console.error('Error in response stream:', error);
