@@ -140,7 +140,7 @@ export default function Conversation() {
     setUserMessage("");
 
     const num_docs = selectedDocuments.length;
-    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}`;
+    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}&user_created_at=${user_created_at}`;
     
     try {
       const response = await axios.post(url, {
