@@ -29,53 +29,55 @@ interface PrintCitation {
 
 
 function formatMessagesCitations(messages: PrintMessage[], citations: PrintCitation[]): Document {
-    const sections: ISectionOptions[] = messages.map(message => {
-        const paragraphs = [
-            new Paragraph({
-                text: capitalize(message.role) + ":",
-                heading: HeadingLevel.HEADING_1,
-                spacing: { after: 300 },
-            }),
-            new Paragraph({
-                text: message.content,
-                spacing: { after: 300 },
-            }),
-        ];
+    const sections: ISectionOptions[] = messages
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map(message => {
+            const paragraphs = [
+                new Paragraph({
+                    text: capitalize(message.role) + ":",
+                    heading: HeadingLevel.HEADING_1,
+                    spacing: { after: 300 },
+                }),
+                new Paragraph({
+                    text: message.content,
+                    spacing: { after: 300 },
+                }),
+            ];
 
-        if (message.role === 'assistant') {
-            const associatedCitations = citations.filter(citation => citation.message_id === message.id);
-            const groupedCitations = groupCitationsBySource(associatedCitations);
+            if (message.role === 'assistant') {
+                const associatedCitations = citations.filter(citation => citation.message_id === message.id);
+                const groupedCitations = groupCitationsBySource(associatedCitations);
 
-            paragraphs.push(new Paragraph({
-                text: "Citations:",
-                heading: HeadingLevel.HEADING_1,
-                spacing: { after: 300 },
-            }));
-
-            for (const [source, citations] of Object.entries(groupedCitations)) {
-                const firstCitation = citations[0];
                 paragraphs.push(new Paragraph({
-                    text: `${firstCitation!.doc_type}, ${firstCitation!.geography} (${firstCitation!.year}):`,
-                    heading: HeadingLevel.HEADING_3,
+                    text: "Citations:",
+                    heading: HeadingLevel.HEADING_1,
                     spacing: { after: 300 },
                 }));
 
-                citations.forEach(citation => {
+                for (const [source, citations] of Object.entries(groupedCitations)) {
+                    const firstCitation = citations[0];
                     paragraphs.push(new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: `Page ${citation.page}: `,
-                                bold: true,
-                            }),
-                            new TextRun(citation.text),
-                        ],
-                        spacing: { after: 200 },
+                        text: `${firstCitation!.doc_type}, ${firstCitation!.geography} (${firstCitation!.year}):`,
+                        heading: HeadingLevel.HEADING_3,
+                        spacing: { after: 300 },
                     }));
-                });
-            }
-        }
 
-        return { children: paragraphs };
+                    citations.forEach(citation => {
+                        paragraphs.push(new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `Page ${citation.page}: `,
+                                    bold: true,
+                                }),
+                                new TextRun(citation.text),
+                            ],
+                            spacing: { after: 200 },
+                        }));
+                    });
+                }
+            }
+
+            return { children: paragraphs };
     });
 
     const doc = new Document({
