@@ -163,7 +163,8 @@ function makeCitations(searchResults: SearchResult[]): BackendCitation[] {
     page_number: element.page, 
     score: element.distance,
     text: element.text,
-    message_id: element.message_id
+    message_id: element.message_id,
+    data_id: element.data_id
   }));
 }
 
@@ -325,7 +326,7 @@ export default async function handler(
       const citations = subProcess.metadata_map.sub_question.citations;
       for (const citation of citations) {
         citationsData.push({
-          data_id: citation.id,
+          data_id: citation.data_id,
           message_id: subProcess.messageId,
           conversation_id: conversation_id,
           score: citation.score
@@ -343,9 +344,10 @@ export default async function handler(
     });
 
     if (!dataMessageResponse.ok) {
-      throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
+      const errorText = await dataMessageResponse.text();
+      console.error('Supabase Insert Error:', errorText);
+      throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
     }
-
     const assistantMessageResponse = assistantMessageRequest;
     if (!assistantMessageResponse.ok) {
       throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
