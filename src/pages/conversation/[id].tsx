@@ -154,7 +154,7 @@ export default function Conversation() {
     });
     setUserMessage("");
 
-    // await delay(1000);
+    await delay(1000);
 
     const num_docs = selectedDocuments.length;
     const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}&user_created_at=${user_created_at}`;
@@ -191,6 +191,10 @@ export default function Conversation() {
       setIsMessagePending(false);
     }
   };
+
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
 
   const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setUserMessage(event.target.value);
