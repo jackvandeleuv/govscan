@@ -13,7 +13,6 @@ import {
   MAX_SELECTED_DOCS,
   useDocumentSelector,
 } from "~/hooks/useDocumentSelector";
-import { backendClient } from "~/api/backend";
 import { AiOutlineArrowRight, AiTwotoneCalendar } from "react-icons/ai";
 import { CgFileDocument } from "react-icons/cg";
 import { customReactSelectStyles } from "~/styles/react-select";
@@ -51,8 +50,9 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, 
         },
-        body: JSON.stringify({ documentIds, token: token }), 
+        body: JSON.stringify({ documentIds }), 
       });
 
       if (!response.ok) {

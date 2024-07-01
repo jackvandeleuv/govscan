@@ -1,51 +1,30 @@
 // hooks/useMessages.js
 import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { ROLE, MESSAGE_STATUS } from "~/types/conversation";
 import type { Message } from "~/types/conversation";
-import { getDateWithUTCOffset } from "~/utils/timezone";
 
-const useMessages = (conversationId: string) => {
+const useMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const userSendMessage = (content: string, user_created_at: string) => {
-    // setMessages((prevMessages) => [
-    //   ...prevMessages,
-
-    //   {
-    //     id: uuidv4(),
-    //     conversationId,
-    //     content,
-    //     role: ROLE.USER,
-    //     status: MESSAGE_STATUS.PENDING,
-    //     created_at: new Date(user_created_at),
-    //   },
-    // ]);
-  };
-
-  const systemSendMessage = (message: Message) => {
-    setMessages((prevMessages) => {
-      const existingMessageIndex = prevMessages.findIndex(
+  const systemSendMessages = (messages: Message[]) => {
+    const newMessages = [...messages];
+    for (const message of messages) {
+      const existingMessageIndex = newMessages.findIndex(
         (msg) => msg.id === message.id
       );
 
-      // Update the existing message
       if (existingMessageIndex > -1) {
-        const updatedMessages = [...prevMessages];
-        updatedMessages[existingMessageIndex] = message;
-        return updatedMessages;
+        newMessages[existingMessageIndex] = message;
+      } else {
+        newMessages.push(message);
       }
-
-      // Add a new message if it doesn't exist
-      return [...prevMessages, message];
-    });
+    }
+    setMessages(newMessages);
   };
 
   return {
     messages,
-    userSendMessage,
     setMessages,
-    systemSendMessage,
+    systemSendMessages,
   };
 };
 

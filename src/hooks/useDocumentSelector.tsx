@@ -60,11 +60,11 @@ export const useDocumentSelector = () => {
 
       try {
         const res = await fetch(endpoint, {
-          method: 'POST',
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
+            'Authorization': `Bearer ${token}`, 
+          }
         });
 
         if (!res.ok) {

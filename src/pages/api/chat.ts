@@ -124,7 +124,7 @@ async function openAiMessage(fullPrompt: string): Promise<string | null> {
 }
 
 
-async function getEmbedding(query: string): Promise<number[]> {
+async function getEmbedding(query: string): Promise<any> {
   const headers = {
     'Authorization': `Bearer ${process.env.OPENAI_API_KEY!}`,
     'Content-Type': 'application/json'
@@ -147,8 +147,7 @@ async function getEmbedding(query: string): Promise<number[]> {
       throw new Error(`HTTP error! status: ${embedResponse.status}`);
     }
 
-    const responseJson: EmbedResponse = await embedResponse.json() as EmbedResponse;
-    return responseJson.data[0]!.embedding;
+    return embedResponse.json();
   } catch (error) {
     console.error('Error in getEmbedding:', error);
     throw error;
@@ -207,32 +206,34 @@ export default async function handler(
   req: NextApiRequest, 
   res: NextApiResponse
 ) {
-  const { conversation_id, message: userMessage, num_docs, assistant_message_id, user_created_at } = req.query as {
-    conversation_id: string;
-    message: string;
-    num_docs: string;
-    assistant_message_id: string;
-    user_created_at: string;
-  };
-
-  let transfer_user_created_at = user_created_at;
-  let assistant_created_at = new Date().toISOString();
-
-  const userTime = new Date(transfer_user_created_at).getTime();
-  const assistantTime = new Date(assistant_created_at).getTime();
-
-  if (userTime >= assistantTime) {
-    transfer_user_created_at = new Date(new Date().getTime() - 10).toISOString();
-    assistant_created_at = new Date().toISOString();
-  }
-
   const requestBody: RequestBody = req.body as RequestBody;
   const token = requestBody.token;
+  const { conversation_id, num_docs, message: userMessage, user_message_id } = req.query as {
+    conversation_id: string;
+    num_docs: string;
+    message: string;
+    user_message_id: string;
+  };
 
-  if (!conversation_id || !userMessage || !token) {
-    res.status(400).json({ message: 'Missing conversation_id / message / token' });
+  console.log(conversation_id)
+  console.log(userMessage)
+  console.log(token)
+
+  if (!conversation_id || !userMessage || !token || !user_message_id || !num_docs) {
+    res.status(400).json({ message: 'Missing body parameters.' });
     return;
   }
+
+  if (isNaN(Number(num_docs))) {
+    res.status(400).json({ message: 'num_docs is incorrectly formatted.' });
+    return;
+  }
+
+  const queryVector = getEmbedding(userMessage);
+
+  const user_created_at = new Date().toISOString();
+  const assistant_created_at = new Date(new Date(user_created_at).getTime() + 10).toISOString();
+  const assistant_message_id = uuidv4();
 
   const messageUrl = `${process.env.SUPABASE_URL!}/rest/v1/message`;
 
@@ -250,43 +251,47 @@ export default async function handler(
       role: ROLE.USER, 
       content: userMessage,
       conversation_id: conversation_id,
-      created_at: transfer_user_created_at
+      created_at: user_created_at
     })
   });
 
-  const queryVector = getEmbedding(userMessage);
-
   const searchUrl = `${process.env.SUPABASE_URL!}/rest/v1/rpc/semantic_search`;
-
-  if (typeof num_docs !== "string") {
-    res.status(400).json({ message: 'num_docs is incorrectly formatted.' });
-    return;
-  }
 
   // Choose number of citations based on number of documents.
   const num_citations = Math.floor(11 - (Number.parseInt(num_docs) * 0.8));
 
-  const body = JSON.stringify({
+  // Await user message embedding from API.
+  const queryVectorResponse: EmbedResponse = await queryVector as EmbedResponse;
+  const queryVectorData = queryVectorResponse.data[0];
+  if (!queryVectorData) {
+    res.status(400).json({ message: 'Embedding user query failed.' });
+    return;
+  }
+  const userMessageEmbedding = queryVectorData.embedding;
+
+  const searchBody = JSON.stringify({
     conv_id: conversation_id,
     num_chunks: num_citations,
-    query_vector: JSON.stringify(await queryVector),
+    query_vector: JSON.stringify(userMessageEmbedding),
   });
 
-  const response = await fetch(searchUrl, {
+  const searchResponse = await fetch(searchUrl, {
     method: 'POST',
     headers: headers,
-    body: body,
+    body: searchBody,
   });
 
-  const searchResults = await response.json() as SearchResult[];
+  const searchResults = await searchResponse.json() as SearchResult[];
 
-  const promptResults: PromptResult[] = searchResults.map((sr): PromptResult => ({
-    text: sr.text,
-    page: sr.page,
-    geography: sr.geography,
-    year: sr.year,
-    doc_type: sr.doc_type,
-  }));
+  const promptResults: PromptResult[] = searchResults.map(
+    (sr): PromptResult => ({
+      text: sr.text,
+      page: sr.page,
+      geography: sr.geography,
+      year: sr.year,
+      doc_type: sr.doc_type,
+    })
+  );
 
   const full_prompt = `Search Results: ${JSON.stringify(promptResults)}\n\nMessage: ${userMessage}`;
 
@@ -296,19 +301,16 @@ export default async function handler(
   
   const subProcesses = makeSubprocesses(searchResults, assistant_message_id);
 
-  const assistantMessage = {
-    id: assistant_message_id,
-    content: '',
-    role: ROLE.ASSISTANT,
-    status: MESSAGE_STATUS.SUCCESS,
-    conversationId: conversation_id,
-    created_at: assistant_created_at,
-    sub_processes: subProcesses
-  };
-
-
   try {
-    assistantMessage.content = await anthropicMessage(full_prompt) || '';
+    const assistantMessage = {
+      id: assistant_message_id,
+      content: await anthropicMessage(full_prompt) || '',
+      role: ROLE.ASSISTANT,
+      status: MESSAGE_STATUS.SUCCESS,
+      conversationId: conversation_id,
+      created_at: assistant_created_at,
+      sub_processes: subProcesses
+    };
 
     // POST assistant message.
     const assistantMessageRequest = await fetch(messageUrl, {
@@ -356,13 +358,16 @@ export default async function handler(
       console.error('Supabase Insert Error:', errorText);
       throw new Error(`HTTP error! status: ${dataMessageResponse.status}`);
     }
-    const assistantMessageResponse = assistantMessageRequest;
-    if (!assistantMessageResponse.ok) {
+
+    if (!assistantMessageRequest.ok) {
       throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
     } 
 
-    res.status(200).json({ message: 'Assistant message generated successfully.', data: assistantMessage, user_created_at: transfer_user_created_at });
-    console.error("Completed api/chat successfully!")
+    res.status(200).json({ 
+      message: 'Assistant message generated successfully.', 
+      data: [userMessage, assistantMessage]
+    });
+    console.error("Completed api/chat successfully!");
     
   } catch (error) {
     console.error('Error in response stream:', error);

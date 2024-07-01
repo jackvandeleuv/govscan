@@ -4,10 +4,8 @@ import { PdfFocusProvider } from "~/context/pdf";
 
 import type { ChangeEvent } from "react";
 import DisplayMultiplePdfs from "~/components/pdf-viewer/DisplayMultiplePdfs";
-import { backendUrl } from "src/config";
-import { BackendCitation, MESSAGE_STATUS, Message, MessageSubprocessSource, ROLE } from "~/types/conversation";
+import { MESSAGE_STATUS, Message, ROLE } from "~/types/conversation";
 import useMessages from "~/hooks/useMessages";
-import { CitationChunks, backendClient } from "~/api/backend";
 import { RenderConversations as RenderConversations } from "~/components/conversations/RenderConversations";
 import { BiArrowBack } from "react-icons/bi";
 import { Document } from "~/types/document";
@@ -19,11 +17,9 @@ import { useIntercom } from "react-use-intercom";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import { getToken } from "../../supabase/manageTokens";
 import { v4 as uuidv4 } from "uuid";
-import axios from 'axios';
 
-interface CitationChunkMap {
-  [key: string]: CitationChunks[];
-}
+const MAX_USER_MESSAGE_TOKENS = 500;
+
 
 interface FetchConversationJSON {
   messages?: Message[];
@@ -33,16 +29,9 @@ interface FetchConversationJSON {
 
 interface ChatResponse {
   message: string;
-  data: Message;
-  user_created_at: string;
+  data: Message[];
 }
 
-type ErrorResponse = {
-  message: string;
-  [key: string]: any;
-};
-
-const MAX_USER_MESSAGE_TOKENS = 500;
 
 export default function Conversation() {
   const router = useRouter();
@@ -63,8 +52,7 @@ export default function Conversation() {
   const [isMessagePending, setIsMessagePending] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState("");
   const [selectedDocuments, setSelectedDocuments] = useState<Document[]>([]);
-  const { messages, userSendMessage, systemSendMessage, setMessages } =
-    useMessages(conversationId || "");
+  const { messages, systemSendMessages, setMessages } = useMessages();
 
   const textFocusRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -75,7 +63,6 @@ export default function Conversation() {
     }
   }, [id]);
   
-
 
   useEffect(() => {
     const fetchConversation = async (id: string) => {
@@ -91,12 +78,14 @@ export default function Conversation() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, 
         },
-        body: JSON.stringify({ id, token }),
+        body: JSON.stringify({ id }),
       });
 
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        console.error(await res.text());
+        return;
       }
 
       const response_json: FetchConversationJSON = await res.json() as FetchConversationJSON; 
@@ -142,59 +131,55 @@ export default function Conversation() {
     const user_created_at = new Date().toISOString();
 
     setIsMessagePending(true);
-    // userSendMessage(userMessage, user_created_at);
+
     const user_message_id = uuidv4();
-    systemSendMessage({
+    systemSendMessages([{
         id: user_message_id,
         conversationId,
         content: userMessage,
         role: ROLE.USER,
         status: MESSAGE_STATUS.PENDING,
         created_at: new Date(user_created_at),
-    });
+    }]);
     setUserMessage("");
 
-    await delay(1000);
-
     const num_docs = selectedDocuments.length;
-    const url = `/api/chat?conversation_id=${conversationId}&message=${encodeURI(userMessage)}&num_docs=${num_docs}&assistant_message_id=${assistant_message_id}&user_created_at=${user_created_at}`;
+    const chatUrl = `/api/chat?
+      conversation_id=${encodeURIComponent(conversationId)}
+      &num_docs=${num_docs}
+      &message=${encodeURIComponent(userMessage)}
+      &user_message_id=${encodeURIComponent(user_message_id)}
+    `;
     
     try {
-      const response = await axios.post(url, {
-        token
-      }, {
+      const chatResponse = await fetch(chatUrl, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, 
         },
-        timeout: 30000  
+        body: JSON.stringify({ 
+          conversation_id: conversationId,
+          num_docs: num_docs,
+          message: userMessage,
+          user_message_id: user_message_id
+        }),
       });
   
-      if (response.status !== 200) throw new Error(response.statusText);
-  
-      const parsedData: ChatResponse = response.data as ChatResponse;
-
-      systemSendMessage({
-        id: user_message_id,
-        conversationId,
-        content: userMessage,
-        role: ROLE.USER,
-        status: MESSAGE_STATUS.PENDING,
-        created_at: new Date(parsedData.user_created_at),
-      });
+      if (!chatResponse.ok) {
+        console.error(await chatResponse.text());
+        return;
+      }
       
-      const assistantMessage = parsedData.data;
-      systemSendMessage(assistantMessage);
-      
+      const parsedData: ChatResponse = await chatResponse.json() as ChatResponse;
+      systemSendMessages(parsedData.data);
+            
     } catch (error) {
       console.error('Request failed:', error);
     } finally {
       setIsMessagePending(false);
     }
   };
-
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
 
   const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setUserMessage(event.target.value);
@@ -237,6 +222,7 @@ export default function Conversation() {
     }
   }, []);
 
+
   const togglePDF = () => {
     setCollapsed(!collapsed);
   }
@@ -255,12 +241,13 @@ export default function Conversation() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, 
       },
-      body: JSON.stringify({ token, conversation_id: conversationId }),
+      body: JSON.stringify({ conversation_id: conversationId }),
     });
 
     if (!res.ok) {
-      console.error('Failed to export chat:', res.statusText);
+      console.error(await res.text());
       return;
     }
 
