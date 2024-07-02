@@ -104,7 +104,7 @@ export const DocumentSelectCombobox: React.FC<DocumentSelectComboboxProps> = ({
           filteredDocuments.map((item, index) => (
             <li
               className={cx(
-                highlightedIndex === index && "bg-[#818BE7] text-white",
+                highlightedIndex === index && "bg-blue-400 text-white",
                 selectedItem === item && "font-bold",
                 "z-20 flex flex-col px-3 py-2 shadow-sm"
               )}
