@@ -3,7 +3,6 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, ISectionOptions } f
 
 interface RequestBody {
     conversation_id: string;
-    token: string;
 }
 
 interface PrintMessage {
@@ -106,7 +105,15 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ) {
-    const { conversation_id, token } = req.body as RequestBody;
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).json({ message: 'Authentication invalid.' });
+      return;
+    }
+  
+    const token = authHeader.replace('Bearer ', '');
+
+    const { conversation_id } = req.body as RequestBody;
 
     const headers = new Headers({
         'Content-Type': 'application/json',
@@ -118,7 +125,6 @@ export default async function handler(
       method: 'GET',
       headers: headers
     });
-
 
     const citationsUrl = `${process.env.SUPABASE_URL!}/rest/v1/rpc/export_citations`;
     const citationsBody = JSON.stringify({

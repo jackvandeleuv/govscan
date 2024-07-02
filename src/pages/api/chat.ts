@@ -206,20 +206,22 @@ export default async function handler(
   req: NextApiRequest, 
   res: NextApiResponse
 ) {
-  const requestBody: RequestBody = req.body as RequestBody;
-  const token = requestBody.token;
-  const { conversation_id, num_docs, message: userMessage, user_message_id } = req.query as {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+  res.status(401).json({ message: 'Authentication invalid.' });
+    return;
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+
+  const { conversation_id, num_docs, message: userPrompt, user_message_id } = req.query as {
     conversation_id: string;
     num_docs: string;
     message: string;
     user_message_id: string;
   };
 
-  console.log(conversation_id)
-  console.log(userMessage)
-  console.log(token)
-
-  if (!conversation_id || !userMessage || !token || !user_message_id || !num_docs) {
+  if (!conversation_id || !userPrompt || !user_message_id || !num_docs) {
     res.status(400).json({ message: 'Missing body parameters.' });
     return;
   }
@@ -229,7 +231,7 @@ export default async function handler(
     return;
   }
 
-  const queryVector = getEmbedding(userMessage);
+  const queryVector = getEmbedding(userPrompt);
 
   const user_created_at = new Date().toISOString();
   const assistant_created_at = new Date(new Date(user_created_at).getTime() + 10).toISOString();
@@ -249,7 +251,7 @@ export default async function handler(
     headers: headers,
     body: JSON.stringify({
       role: ROLE.USER, 
-      content: userMessage,
+      content: userPrompt,
       conversation_id: conversation_id,
       created_at: user_created_at
     })
@@ -293,7 +295,7 @@ export default async function handler(
     })
   );
 
-  const full_prompt = `Search Results: ${JSON.stringify(promptResults)}\n\nMessage: ${userMessage}`;
+  const full_prompt = `Search Results: ${JSON.stringify(promptResults)}\n\nMessage: ${userPrompt}`;
 
   searchResults.forEach(element => {
     element.message_id = assistant_message_id;
@@ -362,6 +364,15 @@ export default async function handler(
     if (!assistantMessageRequest.ok) {
       throw new Error(`HTTP error! status: ${dataMessageResponse.statusText}`);
     } 
+
+    const userMessage = {
+      id: user_message_id,
+      content: userPrompt,
+      role: ROLE.USER,
+      status: MESSAGE_STATUS.SUCCESS,
+      conversationId: conversation_id,
+      created_at: user_created_at
+    }
 
     res.status(200).json({ 
       message: 'Assistant message generated successfully.', 

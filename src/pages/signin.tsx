@@ -50,12 +50,12 @@ function SignIn({ setAuthString, error, setError }: SignInProps) {
         </div>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <div className="flex items-center justify-center">
-          <button type="submit" className="bg-llama-indigo hover:hover:bg-[#3B3775] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign In</button>
+          <button type="submit" className="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign In</button>
         </div>
       </form>
       <div className="mt-4 text-center">
         <p className="text-gray-700 text-sm">{"Don't have a password?"}
-          <button onClick={handleSignupRedirect} className="text-llama-indigo hover:text-[#3B3775] font-bold">Create an account.</button>
+          <button onClick={handleSignupRedirect} className="text-blue-400 hover:text-blue-400 font-bold">Create an account.</button>
         </p>
       </div>
     </div>

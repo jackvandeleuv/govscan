@@ -71,14 +71,14 @@ function SignUp() {
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         {successMessage && <p className="text-green-500 text-sm mb-4">{successMessage}</p>}
         <div className="flex items-center justify-center">
-          <button type="submit" className="bg-llama-indigo hover:hover:bg-[#3B3775] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign Up</button>
+          <button type="submit" className="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Sign Up</button>
         </div>
       </form>
       <div className="mt-4 text-center">
         <p className="text-gray-700 text-sm">
           {"Already have an account?"}
           {" "}
-          <button onClick={handleSigninRedirect} className="text-llama-indigo hover:text-[#3B3775] font-bold">Sign in here.</button>
+          <button onClick={handleSigninRedirect} className="text-blue-400 hover:text-blue-600 font-bold">Sign in here.</button>
         </p>
       </div>
     </div>

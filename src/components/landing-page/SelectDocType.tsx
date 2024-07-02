@@ -13,7 +13,7 @@ function getDocTypeFilter(inputValue: string) {
     return (
       !inputValue ||
       docType.fullName.toLowerCase().includes(lowerCasedInputValue) ||
-      docType.docType.toLowerCase().includes(lowerCasedInputValue)
+      docType.doc_type.toLowerCase().includes(lowerCasedInputValue)
     );
   };
 }

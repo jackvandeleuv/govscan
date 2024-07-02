@@ -20,7 +20,7 @@ export const MarketingSection = () => {
     <>
       <div className="mb-24 mt-24 flex h-max min-h-[200px] w-full items-center justify-center">
         <div className="flex flex-col items-center justify-center">
-          <div className="font-bold text-llama-indigo">
+          <div className="font-bold bg-blue-400">
             SEC Insights presents
           </div>
           <div className="w-3/4 text-center font-lora text-4xl font-bold">
@@ -153,7 +153,7 @@ export const MarketingSection = () => {
               </div>
               <div className="flex items-center justify-around">
                 <a href="mailto:hi@secinsights.ai" target="_blank">
-                  <button className="m-4 rounded border bg-llama-indigo px-8 py-2 font-bold text-white hover:bg-[#3B3775]">
+                  <button className="m-4 rounded border bg-blue-400 px-8 py-2 font-bold text-white hover:bg-blue-600">
                     Get in Touch
                   </button>
                 </a>

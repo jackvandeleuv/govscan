@@ -17,6 +17,9 @@ import { useIntercom } from "react-use-intercom";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import { getToken } from "../../supabase/manageTokens";
 import { v4 as uuidv4 } from "uuid";
+import { NextApiRequest, NextApiResponse } from 'next';
+import type { BackendCitation, MessageSubProcess } from "~/types/conversation";
+import { MessageSubprocessSource } from "~/types/conversation";
 
 const MAX_USER_MESSAGE_TOKENS = 500;
 
@@ -24,13 +27,28 @@ const MAX_USER_MESSAGE_TOKENS = 500;
 interface FetchConversationJSON {
   messages?: Message[];
   documents?: Document[];
-  message: string;
 }
 
 interface ChatResponse {
   message: string;
   data: Message[];
 }
+
+type ResponseData = {
+  messages?: Message[];
+  documents?: Document[];
+  message: string;
+};
+
+interface RequestBody {
+  id: string;
+  token: string;
+}
+
+type ErrorResponse = {
+  message: string;
+  [key: string]: any;
+};
 
 
 export default function Conversation() {
@@ -62,33 +80,153 @@ export default function Conversation() {
       setConversationId(id);
     }
   }, [id]);
+
+  
+  function makeSubprocesses(
+    message: Message, 
+    citationMap: Map<string, BackendCitation[]>,
+    documents: Document[]
+  ): MessageSubProcess[] | null {
+    const message_id = message.id;
+  
+    if (!citationMap.has(message_id)) return null;
+  
+    const citations = citationMap.get(message_id)!;
+  
+    const citationToDocument = new Map<string, BackendCitation[]>();
+    for (const citation of citations) {
+      const key = citation.document_id;
+      if (citationToDocument.has(key)) {
+        citationToDocument.get(key)!.push(citation);
+      } else {
+        citationToDocument.set(key, [citation]);
+      }
+    }
+  
+    const subProcesses: MessageSubProcess[] = [];
+    for (const [docId, citationArr] of citationToDocument.entries()) {
+      const docName = documents.filter((d) => d.id === docId)[0]?.geography;
+      subProcesses.push(
+        {
+          id: uuidv4(),
+          messageId: message_id,
+          content: '',
+          source: MessageSubprocessSource.PLACEHOLDER,
+          metadata_map: {
+            sub_question: {
+              question: docName!,
+              citations: citationArr
+            }
+          }
+        }
+      )
+    }
+  
+    return subProcesses;
+  }
+  
+  
+  async function apiFetchConversation(
+    conversationId: string
+  ) {
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    }
+
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      'Authorization': `Bearer ${token}`
+    });
+  
+    const messageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/message?select=id,content,role,updated_at,created_at&conversation_id=eq.${conversationId}`;
+    const messageRequest = fetch(messageUrl, {
+      method: 'GET',
+      headers: headers
+    });
+  
+    const citationsUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/rpc/citations`;
+    const citationsBody = JSON.stringify({
+      conv_id: conversationId
+    });
+    const citationsRequest = fetch(citationsUrl, {
+      method: 'POST',
+      headers: headers,
+      body: citationsBody,
+    });
+  
+    const documentUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/document?select=id,language,url,geography,year,doc_type,conversationdocument!inner(conversation_id)&conversationdocument.conversation_id=eq.${conversationId}`;
+    const documentRequest = fetch(documentUrl, {
+      method: 'GET',
+      headers: headers
+    });
+    
+    const messageResponse = await messageRequest;
+    if (!messageResponse.ok) {
+      const error: ErrorResponse = await messageResponse.json() as ErrorResponse;
+      console.error('Error fetching message:', error);
+      return;
+    }
+    const messages: Message[] = await messageResponse.json() as Message[];
+  
+    const citationResponse = await citationsRequest;
+    if (!citationResponse.ok) {
+      const error: ErrorResponse = await citationResponse.json() as ErrorResponse;
+      console.error('Error fetching citations:', error);
+      return;
+    }
+    const citations: BackendCitation[] = await citationResponse.json() as BackendCitation[];
+  
+    const documentResponse = await documentRequest;
+    if (!documentResponse.ok) {
+      const error: ErrorResponse = await documentResponse.json() as ErrorResponse;
+      console.error('Error fetching document:', error);
+      return;
+    }
+    const documents: Document[] = await documentResponse.json() as Document[];
+  
+    if (citations === null) {
+      return {
+        documents: documents,
+        messages: messages
+      } as FetchConversationJSON
+    }
+    
+    const citationMap = new Map<string, BackendCitation[]>();
+    for (const citation of citations) {
+      const key = citation.message_id;
+      if (citationMap.has(key)) {
+        citationMap.get(key)!.push(citation);
+      } else {
+        citationMap.set(key, [citation]);
+      }
+    }
+    
+    const updatedMessages: Message[] = [];
+    for (const message of messages) {
+      const subProcesses = makeSubprocesses(message, citationMap, documents) || undefined;
+      updatedMessages.push({
+        ...message,
+        sub_processes: subProcesses
+      });
+    }
+  
+    return {
+      documents: documents,
+      messages: updatedMessages
+    } as FetchConversationJSON
+  }
   
 
   useEffect(() => {
-    const fetchConversation = async (id: string) => {
-      const endpoint = '/api/fetch-conversation';
-
-      const token = await getToken();
-      if (!token) {
-        console.error('Could not get access token.')
+    const fetchConversation = async (conversationId: string) => {
+      const response_json = await apiFetchConversation(conversationId); 
+      if (!response_json) {
+        console.error("Could not fetch conversation.")
         return;
       }
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, 
-        },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!res.ok) {
-        console.error(await res.text());
-        return;
-      }
-
-      const response_json: FetchConversationJSON = await res.json() as FetchConversationJSON; 
 
       if (response_json.documents) {
         setSelectedDocuments(response_json.documents);
@@ -106,11 +244,6 @@ export default function Conversation() {
     }
   }, [conversationId, setMessages]);
 
-
-  function delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
   
   const submit = async () => {
     if (!userMessage || !conversationId) return;
@@ -126,13 +259,11 @@ export default function Conversation() {
       return;
     }
 
-    const assistant_message_id = uuidv4();
-
-    const user_created_at = new Date().toISOString();
-
     setIsMessagePending(true);
 
+    const user_created_at = new Date().toISOString();
     const user_message_id = uuidv4();
+
     systemSendMessages([{
         id: user_message_id,
         conversationId,
@@ -144,12 +275,7 @@ export default function Conversation() {
     setUserMessage("");
 
     const num_docs = selectedDocuments.length;
-    const chatUrl = `/api/chat?
-      conversation_id=${encodeURIComponent(conversationId)}
-      &num_docs=${num_docs}
-      &message=${encodeURIComponent(userMessage)}
-      &user_message_id=${encodeURIComponent(user_message_id)}
-    `;
+    const chatUrl = `/api/chat?conversation_id=${encodeURIComponent(conversationId)}&num_docs=${num_docs}&message=${encodeURIComponent(userMessage)}&user_message_id=${encodeURIComponent(user_message_id)}`;
     
     try {
       const chatResponse = await fetch(chatUrl, {
@@ -251,11 +377,19 @@ export default function Conversation() {
       return;
     }
 
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // getMonth() returns 0-based month
+    const day = String(now.getDate()).padStart(2, '0');
+
+    const firstDocumentName = selectedDocuments[0]?.doc_type || '';
+    const file_name = `${firstDocumentName}_Chat_${month}-${day}-${year}.docx`;
+
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `chat_${conversationId!}.docx`;  
+    a.download = file_name;  
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -277,7 +411,7 @@ export default function Conversation() {
                 .push(`/`)
                 .catch(() => console.error("error navigating to conversation"));
             }}
-            className="m-4 rounded border bg-llama-indigo px-8 py-2 font-bold text-white hover:bg-[#3B3775]"
+            className="m-4 rounded border bg-blue-400 px-8 py-2 font-bold text-white hover:bg-blue-600"
           >
             Back Home
           </button>

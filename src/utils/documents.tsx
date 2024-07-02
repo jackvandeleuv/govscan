@@ -13,7 +13,7 @@ export function getAllGeographies(
 
   for (const doc of documents) {
     // Skip if we've seen this ticker before
-    if (doc.docType !== selectedDocumentType.docType) {
+    if (doc.doc_type !== selectedDocumentType.doc_type) {
       continue;
     }
 
@@ -31,13 +31,13 @@ export function getAllDocumentTypes(documents: Document[]): DocumentType[] {
 
   for (const doc of documents) {
     // Skip if we've seen this ticker before
-    if (seen[doc.docType]) {
+    if (seen[doc.doc_type]) {
       continue;
     }
 
-    seen[doc.docType] = true;
+    seen[doc.doc_type] = true;
     result.push({
-      docType: doc.docType,
+      doc_type: doc.doc_type,
       fullName: doc.fullName
     });
   }
@@ -54,7 +54,7 @@ export function filterByGeographyAndType(
     return [];
   }
   return documents.filter(
-    (document) => document.geography === geography && document.docType === docType
+    (document) => document.geography === geography && document.doc_type === docType
   );
 }
 

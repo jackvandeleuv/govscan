@@ -23,7 +23,7 @@ export function getAvailableYears(
   type: DocumentType,
   documents: Document[]
 ): SelectOption[] {
-  const docType = type.docType;
+  const docType = type.doc_type;
   const docs = filterByGeographyAndType(geography, docType, documents);
   const yearOptions: SelectOption[] = docs.map(documentToYearOption);
   return yearOptions;

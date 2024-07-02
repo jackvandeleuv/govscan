@@ -5,20 +5,20 @@ import type { Message } from "~/types/conversation";
 const useMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const systemSendMessages = (messages: Message[]) => {
-    const newMessages = [...messages];
-    for (const message of messages) {
-      const existingMessageIndex = newMessages.findIndex(
-        (msg) => msg.id === message.id
+  const systemSendMessages = (sentMessages: Message[]) => {
+    const updatedMessages = [...messages];
+    for (const sentMessage of sentMessages) {
+      const existingMessageIndex = updatedMessages.findIndex(
+        (msg) => msg.id === sentMessage.id
       );
 
       if (existingMessageIndex > -1) {
-        newMessages[existingMessageIndex] = message;
+        updatedMessages[existingMessageIndex] = sentMessage;
       } else {
-        newMessages.push(message);
+        updatedMessages.push(sentMessage);
       }
     }
-    setMessages(newMessages);
+    setMessages(updatedMessages);
   };
 
   return {
