@@ -2,7 +2,7 @@ import { DocumentColorEnum } from "~/utils/colors";
 
 
 export type DocumentType = {
-  docType: string;
+  doc_type: string;
   fullName: string;
 }
 

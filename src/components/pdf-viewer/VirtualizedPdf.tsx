@@ -117,7 +117,6 @@ const PageRenderer: React.FC<PageRenderer> = ({
 
   const onPageRenderSuccess = useCallback(
     (page: { width: number }) => {
-      // console.log("triggering rerender for page", index);
       showPageCanvas();
       maybeHighlight();
       // react-pdf absolutely pins the pdf into the upper left corner

@@ -15,6 +15,8 @@ import {
 } from "~/utils/landing-page-selection";
 import useLocalStorage from "./utils/useLocalStorage";
 import { getToken } from "../supabase/manageTokens";
+import { NextApiRequest, NextApiResponse } from 'next';
+
 
 interface SupabaseDocument {
   doc_type: string;
@@ -25,9 +27,6 @@ interface SupabaseDocument {
   language: string;
 }
 
-export interface ResponseJSON {
-  documents: SupabaseDocument[];
-}
 
 export const MAX_SELECTED_DOCS = 10;
 
@@ -48,45 +47,55 @@ export const useDocumentSelector = () => {
   }, [availableDocuments]);
 
 
+  async function apiGetDocuments(): Promise<SupabaseDocument[] | undefined> {
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    }
+
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/document?select=id,language,url,geography,year,doc_type`;
+
+    const headers: HeadersInit = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    };
+
+    try {
+      const response = await fetch(url, { headers });
+
+      if (!response.ok) {
+        console.error(await response.text());
+      }
+
+      return await response.json() as SupabaseDocument[];
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+
   useEffect(() => {
     const getDocuments = async () => {
-      const token = await getToken();
-      if (!token) {
-        console.error('Could not get access token.')
+      const documents = await apiGetDocuments();
+      if (!documents) {
+        console.error("Could not fetch documents.")
         return;
       }
 
-      const endpoint = '/api/document';
+      const docs = documents.map((x: SupabaseDocument): Document => ({
+        doc_type: x.doc_type,
+        fullName: x.doc_type,
+        id: x.id,
+        url: x.url,
+        year: `${x.year}, ${x.language}`,
+        geography: x.geography,
+        language: x.language
+      }));
 
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const response_json: ResponseJSON = await res.json() as ResponseJSON;
-
-        const docs = response_json.documents.map((x: SupabaseDocument): Document => ({
-          docType: x.doc_type,
-          fullName: x.doc_type,
-          id: x.id,
-          url: x.url,
-          year: `${x.year}, ${x.language}`,
-          geography: x.geography,
-          language: x.language
-        }));
-
-        setAvailableDocuments(docs);
-      } catch (error) {
-        console.error(error);
-      }
+      setAvailableDocuments(docs);
     };
 
     void getDocuments().catch(error => console.error(error));

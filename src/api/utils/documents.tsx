@@ -23,7 +23,7 @@ export const fromBackendDocumentToFrontend = (
     const shortDocType = urlParts[urlParts.length - 2];
 
     return {
-      docType: shortDocType,
+      doc_type: shortDocType,
       fullName: backendDoc.metadata_map.sec_document.doc_type,
       id: backendDoc.id,
       url: backendDoc.url,

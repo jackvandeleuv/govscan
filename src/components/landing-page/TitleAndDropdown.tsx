@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
 import { FiTrash2 } from "react-icons/fi";
-import GitHubButton from "react-github-btn";
 
 import cx from "classnames";
 import type { SelectOption } from "~/types/selection";
@@ -13,7 +12,6 @@ import {
   MAX_SELECTED_DOCS,
   useDocumentSelector,
 } from "~/hooks/useDocumentSelector";
-import { backendClient } from "~/api/backend";
 import { AiOutlineArrowRight, AiTwotoneCalendar } from "react-icons/ai";
 import { CgFileDocument } from "react-icons/cg";
 import { customReactSelectStyles } from "~/styles/react-select";
@@ -22,6 +20,8 @@ import { LoadingSpinner } from "~/components/basics/Loading";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import AuthPanel from "../dropdowns/AuthPanel";
 import { getToken } from "../../supabase/manageTokens";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { v4 as uuidv4 } from 'uuid';
 
 interface TitleAndDropdownProps {
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
@@ -31,6 +31,16 @@ interface CreateConversationResponse {
   newConversationId: string;
 }
 
+type ResponseData = {
+  message: string;
+  newConversationId?: string;
+};
+
+interface RequestBody {
+  documentIds: string[];
+  token: string;
+}
+
 export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedIn }) => {
   const router = useRouter();
 
@@ -38,29 +48,64 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
 
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
 
+
+  async function postConversation(documentIds: string[]) {
+    const token = await getToken();
+    if (!token) {
+      console.error('Could not get access token.')
+      return;
+    }
+
+    const conversationId = uuidv4();
+  
+    const conversationUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/conversation`;
+    const conversationDocumentUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL!}/rest/v1/conversationdocument`;
+  
+    const headers: HeadersInit = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    };
+  
+    try {
+      const conversationResponse = await fetch(conversationUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ id: conversationId }),
+      });
+  
+      if (!conversationResponse.ok) {
+        throw new Error(`HTTP error! status: ${conversationResponse.status}`);
+      }
+  
+      for (const docId of documentIds) {
+        const conversationDocumentResponse = await fetch(conversationDocumentUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ conversation_id: conversationId, document_id: docId }),
+        });
+  
+        if (!conversationDocumentResponse.ok) {
+          throw new Error(`HTTP error! status: ${conversationDocumentResponse.status}`);
+        }
+      }
+  
+      return conversationId
+  
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+    }
+  }
+  
+
   const createConversation = async (documentIds: string[]) => {
     setIsLoadingConversation(true);
     try {
-      const token = await getToken();
-      if (!token) {
-        console.error('Could not get access token.')
+      const newConversationId = await postConversation(documentIds);
+      if (!newConversationId) {
+        console.error('Could not create conversation.');
         return;
       }
-
-      const response = await fetch('/api/create-conversation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ documentIds, token: token }), 
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create conversation');
-      }
-
-      const { newConversationId }: CreateConversationResponse = await response.json() as CreateConversationResponse;
-
       setIsLoadingConversation(false);
       await router.push(`conversation/${newConversationId}`);
     } catch (error) {
@@ -68,6 +113,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
       setIsLoadingConversation(false);
     }
   };
+
 
   const handleSubmit = (event: { preventDefault: () => void }) => {
     setIsLoadingConversation(true);
@@ -207,20 +253,20 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
             <div className="relative">
 
               <button
-                className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+                className="m-4 rounded border bg-blue-400 px-8 py-2 text-white hover:bg-blue-600 disabled:bg-gray-30"
                 onClick={handleAddDocument}
                 disabled={!isDocumentSelectionEnabled || !selectedYear}
               >
                 Add One
               </button>
               <button
-              className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+              className="m-4 rounded border bg-blue-400 px-8 py-2 text-white hover:bg-blue-600 disabled:bg-gray-30"
               onClick={handleAddAll}
               >
                 Add Max
               </button>
               <button
-                className="m-4 rounded border bg-llama-indigo px-8 py-2 text-white hover:bg-[#3B3775] disabled:bg-gray-30"
+                className="m-4 rounded border bg-blue-400 px-8 py-2 text-white hover:bg-blue-600 disabled:bg-gray-30"
                 onClick={handleRemoveAll}
               >
                 Remove All
@@ -235,7 +281,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
                 key={index}
                 className={cx(
                   index === 0 && "mt-2 border-t",
-                  "group flex items-center justify-between border-b p-1 font-nunito font-bold text-[#868686] hover:bg-[#EAEAF7] hover:text-[#350F66] "
+                  "group flex items-center justify-between border-b p-1 font-nunito font-bold text-[#868686] hover:bg-blue-100 hover:text-blue-500"
                 )}
               >
                 <div className="w-64 text-left">
@@ -279,7 +325,7 @@ export const TitleAndDropdown: React.FC<TitleAndDropdownProps> = ({ setIsLoggedI
                   disabled={!isStartConversationButtonEnabled}
                   onClick={handleSubmit}
                   className={cx(
-                    "m-4 rounded border bg-llama-indigo px-6 py-2 font-nunito text-white hover:bg-[#3B3775] disabled:bg-gray-30 ",
+                    "m-4 rounded border bg-blue-400 px-6 py-2 font-nunito text-white hover:bg-blue-600 disabled:bg-gray-30 ",
                     !isStartConversationButtonEnabled &&
                       "border-gray-300 bg-gray-300"
                   )}
