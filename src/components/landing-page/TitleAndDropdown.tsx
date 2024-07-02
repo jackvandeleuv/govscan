@@ -20,7 +20,6 @@ import { LoadingSpinner } from "~/components/basics/Loading";
 import useIsMobile from "~/hooks/utils/useIsMobile";
 import AuthPanel from "../dropdowns/AuthPanel";
 import { getToken } from "../../supabase/manageTokens";
-import { NextApiRequest, NextApiResponse } from 'next';
 import { v4 as uuidv4 } from 'uuid';
 
 interface TitleAndDropdownProps {
