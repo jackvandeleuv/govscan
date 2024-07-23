@@ -1,9 +1,10 @@
 import pandas as pd
 import os
+import re
 
 OCR_DIR = 'ocr-chunks'
 EMBEDDING_DIR = 'embeddings'
-VLR_METADATA_PATH = 'vlrs-6-13-24.csv'
+VLR_METADATA_PATH = 'vlrs-7-15-24.csv'
 DOC_TYPE = 'Voluntary Local Review'
 S3_BUCKET_NAME = 'voluntary-local-reviews'
 DOCUMENT_TABLE_FILE = 'supabase-data/document.csv'
@@ -19,7 +20,8 @@ def create_file_name(row: pd.Series, extension: str) -> str:
         row['Language'],
         str(row['Year'])
     ]) + extension
-    file_name = file_name.replace(':', '')  # Sanitize file name.
+    file_name = re.sub(r'[<>:"/\\|?*]', '', file_name)  # Santize file name.
+
     return file_name
 
 
@@ -71,7 +73,7 @@ def export_data_pg_vector_store():
     start = 0
     chunk_len = len(df) // NUM_VECTOR_DATA_SPLITS
     end = chunk_len
-    print(len(df))
+
     while start < len(df):
         df_slice = df.iloc[start : end]
         df_slice.to_csv(DATA_PG_VECTOR_STORE_FILE + f'_{start}_{end}' + '.csv', index=False)

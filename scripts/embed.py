@@ -29,6 +29,10 @@ async def embed(string: str) -> List[float]:
 
 async def main():
     for file_name in os.listdir(OCR_DIR):
+        if os.path.isfile(EMBEDDING_DIR + '/' + 'EMBED_' + file_name):
+            print('[WARNING] Skipping:', file_name)
+            continue
+
         print(f'[INFO] Processing {file_name}')
         file_path = OCR_DIR + '/' + file_name
         if not os.path.isfile(file_path):
